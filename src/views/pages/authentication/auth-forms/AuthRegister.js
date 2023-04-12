@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -40,14 +40,39 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const FirebaseRegister = ({ ...others }) => {
     const theme = useTheme();
+    const navigate = useNavigate();
     const scriptedRef = useScriptRef();
     const matchDownSM = useMediaQuery(theme.breakpoints.down('md'));
-    const customization = useSelector((state) => state.customization);
     const [showPassword, setShowPassword] = useState(false);
     const [checked, setChecked] = useState(true);
 
     const [strength, setStrength] = useState(0);
     const [level, setLevel] = useState();
+
+    // 👇 Calling the Register Mutation
+    const [registerUser, { isLoading, isSuccess, error, isError, data }] = useRegisterUserMutation();
+
+    useEffect(() => {
+        if (isSuccess) {
+            toast.success(data?.message);
+            navigate('/verifyemail');
+        }
+
+        if (isError) {
+            if (Array.isArray(error.data.error)) {
+                error.data.error.forEach((el) =>
+                    toast.error(el.message, {
+                        position: 'top-right'
+                    })
+                );
+            } else {
+                toast.error(error.data.message, {
+                    position: 'top-right'
+                });
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoading]);
 
     const googleHandler = async () => {
         console.error('Register');
@@ -107,7 +132,7 @@ const FirebaseRegister = ({ ...others }) => {
                                 borderColor: `${theme.palette.grey[100]} !important`,
                                 color: `${theme.palette.grey[900]}!important`,
                                 fontWeight: 500,
-                                borderRadius: `${customization.borderRadius}px`
+                                borderRadius: 20
                             }}
                             disableRipple
                             disabled
@@ -140,6 +165,8 @@ const FirebaseRegister = ({ ...others }) => {
                             setStatus({ success: true });
                             setSubmitting(false);
                         }
+                        // 👇 Executing the RegisterUser Mutation
+                        registerUser(values);
                     } catch (err) {
                         console.error(err);
                         if (scriptedRef.current) {

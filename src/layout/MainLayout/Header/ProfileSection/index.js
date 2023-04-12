@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -43,7 +42,6 @@ import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons';
 
 const ProfileSection = () => {
     const theme = useTheme();
-    const customization = useSelector((state) => state.customization);
     const navigate = useNavigate();
 
     const [sdm, setSdm] = useState(true);
@@ -246,7 +244,7 @@ const ProfileSection = () => {
                                                 }}
                                             >
                                                 <ListItemButton
-                                                    sx={{ borderRadius: `${customization.borderRadius}px` }}
+                                                    sx={{ borderRadius: 20 }}
                                                     selected={selectedIndex === 0}
                                                     onClick={(event) => handleListItemClick(event, 0, '/user/account-profile/profile1')}
                                                 >
@@ -256,7 +254,7 @@ const ProfileSection = () => {
                                                     <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
                                                 </ListItemButton>
                                                 <ListItemButton
-                                                    sx={{ borderRadius: `${customization.borderRadius}px` }}
+                                                    sx={{ borderRadius: 20 }}
                                                     selected={selectedIndex === 1}
                                                     onClick={(event) => handleListItemClick(event, 1, '/user/social-profile/posts')}
                                                 >
@@ -284,7 +282,7 @@ const ProfileSection = () => {
                                                     />
                                                 </ListItemButton>
                                                 <ListItemButton
-                                                    sx={{ borderRadius: `${customization.borderRadius}px` }}
+                                                    sx={{ borderRadius: 20 }}
                                                     selected={selectedIndex === 4}
                                                     onClick={handleLogout}
                                                 >

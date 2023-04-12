@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -41,8 +41,35 @@ const FirebaseLogin = ({ ...others }) => {
     const theme = useTheme();
     const scriptedRef = useScriptRef();
     const matchDownSM = useMediaQuery(theme.breakpoints.down('md'));
-    const customization = useSelector((state) => state.customization);
+
     const [checked, setChecked] = useState(true);
+    const navigate = useNavigate();
+    const location = useLocation();
+    // 👇 API Login Mutation
+    const [loginUser, { isLoading, isError, error, isSuccess }] = useLoginUserMutation();
+
+    useEffect(() => {
+        if (isSuccess) {
+            toast.success('You successfully logged in');
+            navigate(from);
+        }
+        if (isError) {
+            if (Array.isArray(error.data.error)) {
+                error.data.error.forEach((el) =>
+                    toast.error(el.message, {
+                        position: 'top-right'
+                    })
+                );
+            } else {
+                toast.error(error.data.message, {
+                    position: 'top-right'
+                });
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoading]);
+
+    const from = location.state?.from.pathname || '/';
 
     const googleHandler = async () => {
         console.error('Login');
@@ -100,7 +127,7 @@ const FirebaseLogin = ({ ...others }) => {
                                 borderColor: `${theme.palette.grey[100]} !important`,
                                 color: `${theme.palette.grey[900]}!important`,
                                 fontWeight: 500,
-                                borderRadius: `${customization.borderRadius}px`
+                                borderRadius: 20
                             }}
                             disableRipple
                             disabled
@@ -120,8 +147,8 @@ const FirebaseLogin = ({ ...others }) => {
 
             <Formik
                 initialValues={{
-                    email: 'info@codedthemes.com',
-                    password: '123456',
+                    email: '',
+                    password: '',
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
@@ -133,6 +160,8 @@ const FirebaseLogin = ({ ...others }) => {
                         if (scriptedRef.current) {
                             setStatus({ success: true });
                             setSubmitting(false);
+                            // 👇 Executing the loginUser Mutation
+                            loginUser(values);
                         }
                     } catch (err) {
                         console.error(err);
