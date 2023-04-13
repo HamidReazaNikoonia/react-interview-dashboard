@@ -15,6 +15,14 @@ const pages = {
     type: 'group',
     children: [
         {
+            id: 'interview-list',
+            title: 'Your Interviews Sessions',
+            type: 'item',
+            url: '/interview-list',
+            icon: icons.IconBrandChrome,
+            breadcrumbs: false
+        },
+        {
             id: 'authentication',
             title: 'Authentication',
             type: 'collapse',

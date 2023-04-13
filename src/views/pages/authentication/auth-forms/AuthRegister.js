@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 // material-ui
@@ -25,6 +25,9 @@ import {
 // third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
+
+// API
+import { useRegisterUserMutation } from 'store/api/authApi';
 
 // project imports
 import useScriptRef from 'hooks/useScriptRef';

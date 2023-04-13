@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 // material-ui
@@ -24,10 +24,13 @@ import {
 // third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
+import { toast } from 'react-toastify';
 
 // project imports
 import useScriptRef from 'hooks/useScriptRef';
 import AnimateButton from 'ui-component/extended/AnimateButton';
+
+import { useLoginUserMutation } from 'store/api/authApi';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -54,6 +57,7 @@ const FirebaseLogin = ({ ...others }) => {
             navigate(from);
         }
         if (isError) {
+            toast.error('Error');
             if (Array.isArray(error.data.error)) {
                 error.data.error.forEach((el) =>
                     toast.error(el.message, {
@@ -67,7 +71,7 @@ const FirebaseLogin = ({ ...others }) => {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoading]);
+    }, [isLoading, isError, isSuccess]);
 
     const from = location.state?.from.pathname || '/';
 

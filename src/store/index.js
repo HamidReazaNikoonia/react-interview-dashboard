@@ -6,6 +6,7 @@ import { interviewApi } from './api/interviewApi';
 import { userApi } from './api/userApi';
 import userReducer from './features/userSlice';
 import interviewReducer from './features/interviewSlice';
+import uiReducer from './features/ui';
 
 // ==============================|| REDUX - MAIN STORE ||============================== //
 
@@ -16,7 +17,8 @@ const store = configureStore({
         // Connect the PostApi reducer to the store
         [interviewApi.reducerPath]: interviewApi.reducer,
         userState: userReducer,
-        interviewState: interviewReducer
+        interviewState: interviewReducer,
+        ui: uiReducer
     },
     devTools: process.env.NODE_ENV === 'development',
     middleware: (getDefaultMiddleware) =>

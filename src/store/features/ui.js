@@ -18,9 +18,9 @@ export const uiSlice = createSlice({
     name: 'uiSlice',
     reducers: {
         menuOpen: (state, action) => {
-            state.isOpen = action.payload?.id;
+            state.isOpen = [action.payload?.id];
         },
-        setMenu: (state) => {
+        setMenu: (state, action) => {
             state.opened = action.payload.opened;
             // state.opened = !state.opened;
         }

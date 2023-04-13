@@ -5,11 +5,13 @@ import { Grid } from '@mui/material';
 
 // project imports
 import EarningCard from './EarningCard';
-import PopularCard from './PopularCard';
+
 import TotalOrderLineChartCard from './TotalOrderLineChartCard';
 import TotalIncomeDarkCard from './TotalIncomeDarkCard';
 import TotalIncomeLightCard from './TotalIncomeLightCard';
-import TotalGrowthBarChart from './TotalGrowthBarChart';
+// import TotalGrowthBarChart from './TotalGrowthBarChart';
+// import PopularCard from './PopularCard';
+
 import { gridSpacing } from 'store/constant';
 
 // ==============================|| DEFAULT DASHBOARD ||============================== //
@@ -44,12 +46,12 @@ const Dashboard = () => {
             </Grid>
             <Grid item xs={12}>
                 <Grid container spacing={gridSpacing}>
-                    <Grid item xs={12} md={8}>
+                    {/* <Grid item xs={12} md={8}>
                         <TotalGrowthBarChart isLoading={isLoading} />
-                    </Grid>
-                    <Grid item xs={12} md={4}>
+                    </Grid> */}
+                    {/* <Grid item xs={12} md={4}>
                         <PopularCard isLoading={isLoading} />
-                    </Grid>
+                    </Grid> */}
                 </Grid>
             </Grid>
         </Grid>
