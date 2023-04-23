@@ -10,6 +10,7 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')))
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const InterviewList = Loadable(lazy(() => import('views/interview-list')));
+const InterviewResult = Loadable(lazy(() => import('views/interview-result')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -37,6 +38,10 @@ const MainRoutes = {
         {
             path: 'interview-list',
             element: <InterviewList />
+        },
+        {
+            path: 'interview-result/:id',
+            element: <InterviewResult />
         }
     ]
 };

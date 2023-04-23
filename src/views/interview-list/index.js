@@ -21,23 +21,57 @@ import MainCard from 'ui-component/cards/MainCard';
 
 // ==============================|| SAMPLE PAGE ||============================== //
 
-function createData(interview_date, created_at, interview_type, interview_status) {
+const mockData = [
+    {
+        selectedTime: '2020/03/22',
+        interviewUserId: '22',
+        paymentStatus: 'PAYED',
+        created_at: '2020/03/11',
+        stack: 'WEB - Front-End',
+        level: 'Junior',
+        status: 'SELECTED_BY_USER',
+        amount: 100000,
+        transaction: {
+            amount: 300,
+            tax: 20
+        },
+        result: {
+            accessToNextRound: 'YES',
+            scores: {
+                technical_skill: 3,
+                problem_solving: 1,
+                communication: 4
+            },
+            description: {
+                context:
+                    'Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem sequi neque quia mollitia ipsum ut quod incidunt ab animi rem atque, debitis velit, sunt nostrum vitae a. Ipsam, ipsum architecto?',
+                summary:
+                    'Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem sequi neque quia mollitia ipsum ut quod incidunt ab animi rem atque, debitis velit, sunt nostrum vitae a. Ipsam, ipsum architecto?',
+                technical_evaluation:
+                    'Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem sequi neque quia mollitia ipsum ut quod incidunt ab animi rem atque, debitis velit, sunt nostrum vitae a. Ipsam, ipsum architecto?',
+                improvement_suggest:
+                    'Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem sequi neque quia mollitia ipsum ut quod incidunt ab animi rem atque, debitis velit, sunt nostrum vitae a. Ipsam, ipsum architecto?'
+            }
+        }
+        // payment: {
+
+        // }
+    }
+];
+
+function createData(selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus) {
     return {
-        interview_date,
+        selectedTime,
         created_at,
-        interview_type,
-        interview_status,
+        stack,
+        status,
         history: [
             {
-                payment_status: 'paied',
-                coach_id: 'coach id',
-                amount: 3
+                payment_status: paymentStatus,
+                coach_id: interviewUserId,
+                amount,
+                total_price: amount
             }
-            // {
-            //     payment_status: 'paied',
-            //     coach_id: 'coach id',
-            //     amount: 3
-            // }
         ]
     };
 }
@@ -45,7 +79,7 @@ function createData(interview_date, created_at, interview_type, interview_status
 function Row(props) {
     const { row } = props;
     const [open, setOpen] = React.useState(false);
-    // interview_date, created_at, interview_type, interview_status
+    // selectedTime, created_at, stack, status
 
     return (
         <React.Fragment>
@@ -58,13 +92,13 @@ function Row(props) {
                 {/* <TableCell component="th" scope="row">
                     row.name
                 </TableCell> */}
-                <TableCell align="left">{row.interview_date}</TableCell>
-                <TableCell align="right">{row.interview_type}</TableCell>
-                <TableCell align="right">{row.interview_status}</TableCell>
+                <TableCell align="left">{row.selectedTime}</TableCell>
+                <TableCell align="right">{row.stack}</TableCell>
+                <TableCell align="right">{row.status}</TableCell>
                 <TableCell align="right">{row.created_at}</TableCell>
 
                 <TableCell align="right">
-                    <Link to="interview-list/99">SEE MORE</Link>
+                    <Link to="/interview-result/99">SEE RESULT</Link>
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -91,7 +125,9 @@ function Row(props) {
                                                 {historyRow.coach_id}
                                             </TableCell>
                                             <TableCell align="right">{historyRow.amount}</TableCell>
-                                            <TableCell align="right">{Math.round(historyRow.amount * row.price * 100) / 100}</TableCell>
+                                            <TableCell align="right">
+                                                {Math.round(historyRow.amount * historyRow.total_price * 100) / 100}
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -104,15 +140,21 @@ function Row(props) {
     );
 }
 
-// interview_date, created_at, interview_type, interview_status
-const rows = [
-    createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending'),
-    createData('1400/03/20', '159/ff/dd', 'Back-End (Node)', 'started'),
-    createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'finished'),
-    createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'cancel'),
-    createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending'),
-    createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending')
-];
+// selectedTime, created_at, stack, status
+// selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus
+
+const rows = mockData.map((data) => {
+    return createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending', 1000, 111, 'PAID');
+});
+
+// const rows = [
+//     createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending'),
+//     createData('1400/03/20', '159/ff/dd', 'Back-End (Node)', 'started'),
+//     createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'finished'),
+//     createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'cancel'),
+//     createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending'),
+//     createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending')
+// ];
 
 const SamplePage = () => (
     <MainCard title="List of your interview sessions">

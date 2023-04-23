@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import { forwardRef } from 'react';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Link } from 'react-router-dom';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -24,6 +26,7 @@ const MainCard = forwardRef(
             darkTitle,
             secondary,
             shadow,
+            backIcon,
             sx = {},
             title,
             ...others
@@ -45,6 +48,11 @@ const MainCard = forwardRef(
                     ...sx
                 }}
             >
+                {backIcon && (
+                    <Link to={backIcon}>
+                        <ArrowBackIcon fontSize="large" sx={{ m: 3, borderRadius: 20, border: '1px solid gray', cursor: 'pointer' }} />
+                    </Link>
+                )}
                 {/* card header and action */}
                 {title && (
                     <CardHeader
@@ -79,6 +87,7 @@ MainCard.propTypes = {
     darkTitle: PropTypes.bool,
     secondary: PropTypes.oneOfType([PropTypes.node, PropTypes.string, PropTypes.object]),
     shadow: PropTypes.string,
+    backIcon: PropTypes.string,
     sx: PropTypes.object,
     title: PropTypes.oneOfType([PropTypes.node, PropTypes.string, PropTypes.object])
 };
