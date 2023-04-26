@@ -23,6 +23,14 @@ const pages = {
             breadcrumbs: false
         },
         {
+            id: 'create-interview',
+            title: 'Create New Interview',
+            type: 'item',
+            url: '/create-interview',
+            icon: icons.IconBrandChrome,
+            breadcrumbs: false
+        },
+        {
             id: 'authentication',
             title: 'Authentication',
             type: 'collapse',
