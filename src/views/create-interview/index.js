@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
 import * as yup from 'yup';
 import { useFormik } from 'formik';
 
 // material-ui
-import { Grid, Typography, InputLabel, MenuItem, FormHelperText, FormControl, TextField, Box, Button } from '@mui/material';
+import { Grid, Typography, InputLabel, MenuItem, FormHelperText, FormControl, TextField, Box, Button, Divider } from '@mui/material';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AddIcon from '@mui/icons-material/Add';
@@ -32,7 +33,8 @@ const validationSchema = yup.object({
         .matches(
             /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
             'Enter correct url!'
-        ),
+        )
+        .required('Select Stack is required'),
     githubProfile: yup
         .string()
         .matches(
@@ -43,6 +45,8 @@ const validationSchema = yup.object({
 
 const CreateInterview = () => {
     const [selectedFile, setselectedFile] = React.useState(null);
+    const [disableForm, setDisableForm] = React.useState(false);
+    const [resumeFile, setResumeFile] = React.useState(false);
 
     const formik = useFormik({
         initialValues: {
@@ -52,6 +56,8 @@ const CreateInterview = () => {
             githubProfile: ''
         },
         validationSchema: validationSchema,
+        // validadeOnMount: true,
+        isInitialValid: false,
         onSubmit: (values) => {
             alert(JSON.stringify(values, null, 2));
         }
@@ -72,22 +78,37 @@ const CreateInterview = () => {
         formData.append('upload', selectedFile, selectedFile?.name);
 
         // Details of the uploaded file
-        console.log(formData);
+        setResumeFile('87897');
 
         // Request made to the backend api
         // Send formData object
         // axios.post("api/uploadfile", formData);
     };
 
+    const formValidation = (formik__) => {
+        if (!!formik__.errors.linkdinProfile || !!formik__.errors.stack) {
+            setDisableForm(true);
+        } else {
+            setDisableForm(false);
+        }
+    };
+
+    React.useEffect(() => {
+        formValidation(formik);
+        console.log(formik);
+    }, [formik, formValidation]);
+
     // file upload is complete
     const FileData = () => {
         if (selectedFile) {
             return (
                 <div>
-                    <h5>File Details:</h5>
-                    <p>File Name: {selectedFile?.name}</p>
-                    <p>File Type: {selectedFile?.type}</p>
-                    <p>Last Modified: {selectedFile?.lastModifiedDate?.toDateString()}</p>
+                    <Typography pb={2} variant="h5">
+                        {' '}
+                        File Details{' '}
+                    </Typography>
+                    <Typography variant="body2"> File Name: {selectedFile?.name} </Typography>
+                    <Typography variant="body2"> File Type: {selectedFile?.type} </Typography>
                 </div>
             );
         } else {
@@ -152,32 +173,46 @@ const CreateInterview = () => {
                     </Grid>
 
                     <Grid item xs={12} py="6">
-                        <Typography variant="h4">Please Upload Your Resume</Typography>
-                        <Typography pt={3} variant="h5" color="gray">
-                            you should upload your resume for get feedback after interview session and we give you best advice to improve
-                            your resume
-                        </Typography>
-                        <Box style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '80%' }} pt={4}>
-                            <Button mr={4} component="label" type="button" variant="contained" endIcon={<AddIcon />}>
-                                <input hidden type="file" onChange={onFileChange} /> Select Resume
-                            </Button>
+                        <Box p={6} style={{ width: '100%', borderRadius: 20, backgroundColor: '#f3f3f3' }}>
+                            <Typography variant="h4">Please Upload Your Resume</Typography>
+                            <Typography pt={3} variant="h5" color="gray">
+                                you should upload your resume for get feedback after interview session and we give you best advice to
+                                improve your resume
+                            </Typography>
+                            <Box pb={1} pt={5}>
+                                {FileData()}
+                            </Box>
+                            <Box style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '80%' }} pt={3}>
+                                <Button mr={4} component="label" type="button" variant="contained" endIcon={<AddIcon />}>
+                                    <input hidden type="file" onChange={onFileChange} /> Select Resume
+                                </Button>
 
-                            <Button
-                                disabled={!selectedFile}
-                                ml={6}
-                                type="button"
-                                onClick={onFileUpload}
-                                variant="contained"
-                                endIcon={<CloudUploadIcon />}
-                            >
-                                Upload
-                            </Button>
+                                <Button
+                                    disabled={!selectedFile}
+                                    ml={6}
+                                    type="button"
+                                    onClick={onFileUpload}
+                                    variant="contained"
+                                    endIcon={<CloudUploadIcon />}
+                                >
+                                    Upload
+                                </Button>
+                            </Box>
                         </Box>
-
-                        {FileData()}
                     </Grid>
 
                     {/* Github Profile Input */}
+
+                    <Grid item xs={12} pt={4}>
+                        <Divider sx={{ marginLeft: 0, width: '100%', paddingTop: '20px', listStyle: 'none' }} variant="inset" />
+                        <Typography pt={4} variant="h4">
+                            Social Media
+                        </Typography>
+
+                        <Typography component="div" mt={3} variant="body" color="gray">
+                            If you have github or Linkedin Account, You can send it for us and we will give you some improvement on it
+                        </Typography>
+                    </Grid>
 
                     <Grid item xs={12} md={6}>
                         <TextField
@@ -206,7 +241,22 @@ const CreateInterview = () => {
                             helperText={formik.touched.linkdinProfile && formik.errors.linkdinProfile}
                         />
                     </Grid>
-                    <button type="submit">Submit</button>
+                    <Grid display="flex" justifyContent="center" item xs={12} pt={10}>
+                        {disableForm && <div>hello</div>}
+                        {resumeFile && <div>by</div>}
+                        <Button
+                            size="large"
+                            px={6}
+                            disabled={!formik.isValid || !resumeFile}
+                            type="button"
+                            onClick={() => {
+                                console.log('');
+                            }}
+                            variant="contained"
+                        >
+                            Apply
+                        </Button>
+                    </Grid>
                 </Grid>
             </form>
         </MainCard>
