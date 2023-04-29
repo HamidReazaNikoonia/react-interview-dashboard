@@ -14,7 +14,8 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { Typography, useMediaQuery } from '@mui/material';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -74,6 +75,42 @@ function createData(selectedTime, created_at, stack, status, amount, interviewUs
             }
         ]
     };
+}
+
+function MobileRow(props) {
+    const { row } = props;
+    const [open, setOpen] = React.useState(false);
+    // selectedTime, created_at, stack, status
+
+    return (
+        <React.Fragment>
+            <TableRow hover sx={{ '& > *': { borderBottom: 'unset' } }}>
+                <TableCell>
+                    <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+                        <Link to="/interview-result/99">
+                            <KeyboardArrowUpIcon />
+                        </Link>
+                    </IconButton>
+                </TableCell>
+
+                {/* <TableCell component="th" scope="row">
+                    row.name
+                </TableCell> */}
+                <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
+                    {row.selectedTime}
+                </TableCell>
+                <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
+                    {row.stack}
+                </TableCell>
+                {/* <TableCell align="center">{row.status}</TableCell> */}
+                {/* <TableCell align="right">{row.created_at}</TableCell> */}
+
+                {/* <TableCell align="right">
+                    
+                </TableCell> */}
+            </TableRow>
+        </React.Fragment>
+    );
 }
 
 function Row(props) {
@@ -156,29 +193,62 @@ const rows = mockData.map((data) => {
 //     createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending')
 // ];
 
-const SamplePage = () => (
-    <MainCard title="List of your interview sessions">
-        <TableContainer component={Paper}>
-            <Table aria-label="collapsible table">
-                <TableHead>
-                    <TableRow>
-                        <TableCell />
-                        <TableCell>Interview Date</TableCell>
-                        <TableCell align="right">Subject</TableCell>
-                        <TableCell align="right">Interview Status</TableCell>
-                        <TableCell align="right">Created Date</TableCell>
-                        <TableCell align="right">MORE Info</TableCell>
-                        {/* <TableCell align="right">Protein&nbsp;(g)</TableCell> */}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {rows.map((row) => (
-                        <Row key={row.name} row={row} />
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    </MainCard>
-);
+const SamplePage = () => {
+    // const isMobile = true;
+    const theme = useTheme();
+    const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
+
+    const DesktopTable = () => (
+        <Table aria-label="collapsible table">
+            <TableHead>
+                <TableRow>
+                    <TableCell />
+                    <TableCell>Interview Date</TableCell>
+                    <TableCell align="right">Subject</TableCell>
+                    <TableCell align="right">Interview Status</TableCell>
+                    <TableCell align="right">Created Date</TableCell>
+                    <TableCell align="right">MORE Info</TableCell>
+                    {/* <TableCell align="right">Protein&nbsp;(g)</TableCell> */}
+                </TableRow>
+            </TableHead>
+
+            <TableBody>
+                {matchesXs
+                    ? rows.map((row) => <MobileRow key={row.name} row={row} />)
+                    : rows.map((row) => <Row key={row.name} row={row} />)}
+            </TableBody>
+        </Table>
+    );
+
+    const MobileTable = () => (
+        <Table aria-label="collapsible table">
+            <TableHead>
+                <TableRow>
+                    <TableCell />
+                    <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
+                        Interview Date
+                    </TableCell>
+                    <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
+                        Subject
+                    </TableCell>
+                    {/* <TableCell align="center">Interview Status</TableCell> */}
+                    {/* <TableCell align="right">MORE Info</TableCell> */}
+                    {/* <TableCell align="right">Protein&nbsp;(g)</TableCell> */}
+                </TableRow>
+            </TableHead>
+            <TableBody>
+                {rows.map((row) => (
+                    <MobileRow key={row.name} row={row} />
+                ))}
+            </TableBody>
+        </Table>
+    );
+
+    return (
+        <MainCard title="List of your interview sessions">
+            <TableContainer component={Paper}>{matchesXs ? <MobileTable /> : <DesktopTable />}</TableContainer>
+        </MainCard>
+    );
+};
 
 export default SamplePage;

@@ -2,12 +2,15 @@
 import * as React from 'react';
 import * as yup from 'yup';
 import { useFormik } from 'formik';
+import { toast } from 'react-toastify';
+import LoadingButton from '@mui/lab/LoadingButton';
 
 // material-ui
 import { Grid, Typography, InputLabel, MenuItem, FormHelperText, FormControl, TextField, Box, Button, Divider } from '@mui/material';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AddIcon from '@mui/icons-material/Add';
+import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -47,6 +50,7 @@ const CreateInterview = () => {
     const [selectedFile, setselectedFile] = React.useState(null);
     const [disableForm, setDisableForm] = React.useState(false);
     const [resumeFile, setResumeFile] = React.useState(false);
+    const [savedResumeFile, setSavedResumeFile] = React.useState('');
 
     const formik = useFormik({
         initialValues: {
@@ -60,8 +64,19 @@ const CreateInterview = () => {
         isInitialValid: false,
         onSubmit: (values) => {
             alert(JSON.stringify(values, null, 2));
+            toast.success('Your Interview Session Created');
+            toast.error('some error', {
+                position: 'top-right'
+            });
         }
     });
+
+    React.useEffect(() => {
+        // If youse have resume
+        if (savedResumeFile) {
+            setResumeFile(savedResumeFile);
+        }
+    }, [savedResumeFile]);
 
     const onFileChange = (event) => {
         // Update the state
@@ -79,6 +94,7 @@ const CreateInterview = () => {
 
         // Details of the uploaded file
         setResumeFile('87897');
+        toast.success('Your Resume successfully Uploaded');
 
         // Request made to the backend api
         // Send formData object
@@ -115,7 +131,6 @@ const CreateInterview = () => {
             return (
                 <div>
                     <br />
-                    <h4>Choose before Pressing the Upload button</h4>
                 </div>
             );
         }
@@ -172,33 +187,68 @@ const CreateInterview = () => {
                         <FormHelperText>Select Your level</FormHelperText>
                     </Grid>
 
-                    <Grid item xs={12} py="6">
-                        <Box p={6} style={{ width: '100%', borderRadius: 20, backgroundColor: '#f3f3f3' }}>
-                            <Typography variant="h4">Please Upload Your Resume</Typography>
-                            <Typography pt={3} variant="h5" color="gray">
-                                you should upload your resume for get feedback after interview session and we give you best advice to
-                                improve your resume
-                            </Typography>
-                            <Box pb={1} pt={5}>
-                                {FileData()}
-                            </Box>
-                            <Box style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '80%' }} pt={3}>
-                                <Button mr={4} component="label" type="button" variant="contained" endIcon={<AddIcon />}>
-                                    <input hidden type="file" onChange={onFileChange} /> Select Resume
-                                </Button>
+                    {/* Upload Resume Section */}
 
-                                <Button
-                                    disabled={!selectedFile}
-                                    ml={6}
-                                    type="button"
-                                    onClick={onFileUpload}
-                                    variant="contained"
-                                    endIcon={<CloudUploadIcon />}
-                                >
-                                    Upload
-                                </Button>
+                    <Grid item xs={12} py="6">
+                        {/* CASE: 2 - When user Have Resume (Change Resume / Watch Resume) */}
+
+                        {savedResumeFile ? (
+                            <Box p={6} style={{ width: '100%', borderRadius: 20, backgroundColor: '#f3f3f3' }}>
+                                <Typography variant="h4">Upload Or Change Your Resume</Typography>
+                                <Typography pt={3} variant="h5" color="gray">
+                                    The selected file will be consider for this interview if you want, you can change your resume and upload
+                                    again
+                                </Typography>
+                                <Box pb={1} pt={5}>
+                                    {FileData()}
+                                </Box>
+                                <Box style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '80%' }} pt={3}>
+                                    <Button mr={4} component="label" type="button" variant="contained" endIcon={<ChangeCircleIcon />}>
+                                        <input hidden type="file" onChange={onFileChange} /> Change Resume
+                                    </Button>
+
+                                    <Button
+                                        disabled={!selectedFile}
+                                        ml={6}
+                                        type="button"
+                                        onClick={onFileUpload}
+                                        variant="contained"
+                                        endIcon={<CloudUploadIcon />}
+                                    >
+                                        Upload
+                                    </Button>
+                                </Box>
                             </Box>
-                        </Box>
+                        ) : (
+                            <Box p={6} style={{ width: '100%', borderRadius: 20, backgroundColor: '#f3f3f3' }}>
+                                <Typography variant="h4">Please Upload Your Resume</Typography>
+                                <Typography pt={3} variant="h5" color="gray">
+                                    you should upload your resume for get feedback after interview session and we give you best advice to
+                                    improve your resume
+                                </Typography>
+                                <Box pb={1} pt={5}>
+                                    {FileData()}
+                                </Box>
+                                <Box style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '80%' }} pt={3}>
+                                    <Button mr={4} component="label" type="button" variant="contained" endIcon={<AddIcon />}>
+                                        <input hidden type="file" onChange={onFileChange} /> Select Resume
+                                    </Button>
+
+                                    <Button
+                                        disabled={!selectedFile}
+                                        ml={6}
+                                        type="button"
+                                        onClick={onFileUpload}
+                                        variant="contained"
+                                        endIcon={<CloudUploadIcon />}
+                                    >
+                                        Upload
+                                    </Button>
+                                </Box>
+                            </Box>
+                        )}
+
+                        {/* CASE: 1 - When User Not Have Resume In Profile and should upload */}
                     </Grid>
 
                     {/* Github Profile Input */}
@@ -242,12 +292,10 @@ const CreateInterview = () => {
                         />
                     </Grid>
                     <Grid display="flex" justifyContent="center" item xs={12} pt={10}>
-                        {disableForm && <div>hello</div>}
-                        {resumeFile && <div>by</div>}
-                        <Button
+                        <LoadingButton
                             size="large"
-                            px={6}
-                            disabled={!formik.isValid || !resumeFile}
+                            loading
+                            px={12}
                             type="button"
                             onClick={() => {
                                 console.log('');
@@ -255,7 +303,7 @@ const CreateInterview = () => {
                             variant="contained"
                         >
                             Apply
-                        </Button>
+                        </LoadingButton>
                     </Grid>
                 </Grid>
             </form>
