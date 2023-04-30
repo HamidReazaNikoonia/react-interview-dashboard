@@ -83,7 +83,7 @@ const NotificationList = () => {
                 }
             }}
         >
-            <ListItemWrapper>
+            {/* <ListItemWrapper>
                 <ListItem alignItems="center">
                     <ListItemAvatar>
                         <Avatar alt="John Doe" src={User1} />
@@ -114,8 +114,8 @@ const NotificationList = () => {
                         </Grid>
                     </Grid>
                 </Grid>
-            </ListItemWrapper>
-            <Divider />
+            </ListItemWrapper> */}
+            {/* <Divider /> */}
             <ListItemWrapper>
                 <ListItem alignItems="center">
                     <ListItemAvatar>
@@ -155,7 +155,7 @@ const NotificationList = () => {
                 </Grid>
             </ListItemWrapper>
             <Divider />
-            <ListItemWrapper>
+            {/* <ListItemWrapper>
                 <ListItem alignItems="center">
                     <ListItemAvatar>
                         <Avatar
@@ -194,7 +194,7 @@ const NotificationList = () => {
                         </Grid>
                     </Grid>
                 </Grid>
-            </ListItemWrapper>
+            </ListItemWrapper> */}
             <Divider />
             <ListItemWrapper>
                 <ListItem alignItems="center">
@@ -246,7 +246,7 @@ const NotificationList = () => {
                 </Grid>
             </ListItemWrapper>
             <Divider />
-            <ListItemWrapper>
+            {/* <ListItemWrapper>
                 <ListItem alignItems="center">
                     <ListItemAvatar>
                         <Avatar alt="John Doe" src={User1} />
@@ -274,7 +274,7 @@ const NotificationList = () => {
                         </Grid>
                     </Grid>
                 </Grid>
-            </ListItemWrapper>
+            </ListItemWrapper> */}
         </List>
     );
 };
