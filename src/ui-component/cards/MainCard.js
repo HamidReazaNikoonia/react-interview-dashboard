@@ -50,7 +50,7 @@ const MainCard = forwardRef(
             >
                 {backIcon && (
                     <Link to={backIcon}>
-                        <ArrowBackIcon fontSize="large" sx={{ m: 3, borderRadius: 20, border: '1px solid gray', cursor: 'pointer' }} />
+                        <ArrowBackIcon fontSize="large" sx={{ m: 3, cursor: 'pointer' }} />
                     </Link>
                 )}
                 {/* card header and action */}

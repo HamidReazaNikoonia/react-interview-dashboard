@@ -15,7 +15,14 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { useTheme } from '@mui/material/styles';
-import { Typography, useMediaQuery } from '@mui/material';
+import { Typography, useMediaQuery, Button, Alert } from '@mui/material';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import LoadingButton from '@mui/lab/LoadingButton';
+import EventBusyIcon from '@mui/icons-material/EventBusy';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -24,6 +31,7 @@ import MainCard from 'ui-component/cards/MainCard';
 
 const mockData = [
     {
+        _id: '2334',
         selectedTime: '2020/03/22',
         interviewUserId: '22',
         paymentStatus: 'PAYED',
@@ -82,15 +90,71 @@ function MobileRow(props) {
     const [open, setOpen] = React.useState(false);
     // selectedTime, created_at, stack, status
 
+    const [openCancelDialog, setopenCancelDialog] = React.useState(false);
+    // selectedTime, created_at, stack, status
+
+    const handleClickOpen = (id) => {
+        console.log(id);
+        setopenCancelDialog(true);
+    };
+
+    const handleClose = () => {
+        setopenCancelDialog(false);
+    };
+
     return (
         <React.Fragment>
+            <Dialog
+                open={openCancelDialog}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Do You Want Cancel This Session?'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        <Alert severity="error" pb={1}>
+                            <Typography pb={2} variant="body2" color="error">
+                                By Canceling your interview, your money pass to you before 12 hours , but after 12 hours 80% of your amont
+                                will be pass
+                            </Typography>
+                            <LoadingButton
+                                size="large"
+                                mt={4}
+                                color="error"
+                                loading={false}
+                                px={12}
+                                type="button"
+                                onClick={() => {
+                                    console.log('');
+                                }}
+                                variant="outlined"
+                                startIcon={<EventBusyIcon />}
+                            >
+                                Cancel Interview
+                            </LoadingButton>
+                        </Alert>
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Disagree</Button>
+                </DialogActions>
+            </Dialog>
             <TableRow hover sx={{ '& > *': { borderBottom: 'unset' } }}>
                 <TableCell>
-                    <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-                        <Link to="/interview-result/99">
-                            <KeyboardArrowUpIcon />
-                        </Link>
-                    </IconButton>
+                    {row.status === 'finished' ? (
+                        <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+                            <Link to="/interview-result/99">
+                                <KeyboardArrowUpIcon />
+                            </Link>
+                        </IconButton>
+                    ) : (
+                        <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+                            <Box onClick={() => handleClickOpen(row.id)} style={{ cursor: 'pointer' }} color="red">
+                                <EventBusyIcon color="red" />
+                            </Box>
+                        </IconButton>
+                    )}
                 </TableCell>
 
                 {/* <TableCell component="th" scope="row">
@@ -116,10 +180,56 @@ function MobileRow(props) {
 function Row(props) {
     const { row } = props;
     const [open, setOpen] = React.useState(false);
+    const [openCancelDialog, setopenCancelDialog] = React.useState(false);
     // selectedTime, created_at, stack, status
+
+    const handleClickOpen = (id) => {
+        console.log(id);
+        setopenCancelDialog(true);
+    };
+
+    const handleClose = () => {
+        setopenCancelDialog(false);
+    };
 
     return (
         <React.Fragment>
+            <Dialog
+                open={openCancelDialog}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{'Do You Want Cancel This Session?'}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        <Alert severity="error" pb={1}>
+                            <Typography pb={2} variant="body2" color="error">
+                                By Canceling your interview, your money pass to you before 12 hours , but after 12 hours 80% of your amont
+                                will be pass
+                            </Typography>
+                            <LoadingButton
+                                size="large"
+                                mt={4}
+                                color="error"
+                                loading={false}
+                                px={12}
+                                type="button"
+                                onClick={() => {
+                                    console.log('');
+                                }}
+                                variant="outlined"
+                                startIcon={<EventBusyIcon />}
+                            >
+                                Cancel Interview
+                            </LoadingButton>
+                        </Alert>
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Disagree</Button>
+                </DialogActions>
+            </Dialog>
             <TableRow hover sx={{ '& > *': { borderBottom: 'unset' } }}>
                 <TableCell>
                     <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
@@ -135,7 +245,13 @@ function Row(props) {
                 <TableCell align="right">{row.created_at}</TableCell>
 
                 <TableCell align="right">
-                    <Link to="/interview-result/99">SEE RESULT</Link>
+                    {row.status === 'finished' ? (
+                        <Link to="/interview-result/99">SEE RESULT</Link>
+                    ) : (
+                        <Box onClick={() => handleClickOpen(row.id)} style={{ cursor: 'pointer' }} color="red">
+                            Cancel Interview
+                        </Box>
+                    )}
                 </TableCell>
             </TableRow>
             <TableRow>
@@ -178,7 +294,7 @@ function Row(props) {
 }
 
 // selectedTime, created_at, stack, status
-// selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus
+// selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus, id
 
 const rows = mockData.map((data) => {
     return createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending', 1000, 111, 'PAID');

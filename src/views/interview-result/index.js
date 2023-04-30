@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 // material-ui
-import { Typography, Grid, List, ListItem, Divider, Box } from '@mui/material';
+import { Typography, Grid, List, ListItem, Divider, Box, Alert } from '@mui/material';
+import LoadingButton from '@mui/lab/LoadingButton';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -70,7 +71,7 @@ const ScoreListRow = ({ leftSide, nextRound, starScore }) => {
     return (
         <Grid pt={4} alignItems="center" container display="flex" justifyContent="center">
             <Grid item xs={6}>
-                <Typography align="left" pl={6} variant="h5">
+                <Typography align="left" sx={{ typography: { sm: 'h6', md: 'h5' } }} pl={{ xs: 0, md: 6 }}>
                     {leftSide}
                 </Typography>
             </Grid>
@@ -90,7 +91,7 @@ const InterviewResult = () => {
         <MainCard title={`${mockData.stack} Interview Result`} backIcon="/interview-list">
             <Grid sx={{ width: '100%', flexDirection: 'column' }} alignItems="center" container display="flex" justifyContent="center">
                 <Grid item xs={12}>
-                    <Typography sx={{ pb: 3 }} variant="h3">
+                    <Typography sx={{ typography: { xs: 'h6', sm: 'h5', md: 'h3' }, pb: 3 }}>
                         Feedback About {mockData.stack} - ( {mockData.level} )
                     </Typography>
                 </Grid>
@@ -109,14 +110,14 @@ const InterviewResult = () => {
 
             <Grid
                 pt={12}
-                px={5}
+                px={{ xs: 1, md: 5 }}
                 sx={{ width: '100%', flexDirection: 'column' }}
                 alignItems="center"
                 container
                 display="flex"
                 justifyContent="center"
             >
-                <Grid xs={12}>
+                <Grid item xs={12}>
                     <Typography sx={{ pb: 3 }} variant="h4">
                         Context
                     </Typography>
@@ -127,7 +128,7 @@ const InterviewResult = () => {
 
                 {/* Summary */}
 
-                <Grid pt={4} xs={12}>
+                <Grid item pt={4} xs={12}>
                     <Typography sx={{ pb: 3 }} variant="h4">
                         Summary
                     </Typography>
@@ -138,7 +139,7 @@ const InterviewResult = () => {
 
                 {/* Technical Evaluation */}
 
-                <Grid pt={4} xs={12}>
+                <Grid item pt={4} xs={12}>
                     <Typography sx={{ pb: 3 }} variant="h4">
                         Technical Evaluation
                     </Typography>
@@ -149,12 +150,36 @@ const InterviewResult = () => {
 
                 {/* Suggestions for Improvement */}
 
-                <Grid pt={4} pb={12} xs={12}>
+                <Grid item pt={4} pb={12} xs={12}>
                     <Typography sx={{ pb: 3 }} variant="h4">
                         Suggestions for Improvement
                     </Typography>
 
                     <Typography variant="body">{mockData.result.description.improvement_suggest}</Typography>
+                </Grid>
+
+                <Grid pb={6} item xs={12}>
+                    {/* <Alert severity="error" pb={6}>
+                        <Typography pb={2} variant="body2" color="error">
+                            By Canceling your interview, your money pass to you before 12 hours , but after 12 hours 80% of your amont will
+                            be pass
+                        </Typography>
+                        <LoadingButton
+                            size="large"
+                            mt={4}
+                            color="error"
+                            loading={false}
+                            px={12}
+                            type="button"
+                            onClick={() => {
+                                console.log('');
+                            }}
+                            variant="outlined"
+                            startIcon={<EventBusyIcon />}
+                        >
+                            Cancel Interview
+                        </LoadingButton>
+                    </Alert> */}
                 </Grid>
             </Grid>
         </MainCard>
