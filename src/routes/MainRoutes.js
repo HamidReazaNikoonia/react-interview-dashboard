@@ -12,6 +12,7 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const InterviewList = Loadable(lazy(() => import('views/interview-list')));
 const InterviewResult = Loadable(lazy(() => import('views/interview-result')));
 const CreateInterview = Loadable(lazy(() => import('views/create-interview')));
+// const PaymentResult = Loadable(lazy(() => import('views/payment-result')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
