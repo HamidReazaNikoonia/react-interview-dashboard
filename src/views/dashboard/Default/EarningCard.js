@@ -79,7 +79,7 @@ const EarningCard = ({ isLoading }) => {
                         <Grid container direction="column">
                             <Grid item>
                                 <Grid container justifyContent="space-between">
-                                    <Grid item>
+                                    {/* <Grid item>
                                         <Avatar
                                             variant="rounded"
                                             sx={{
@@ -91,8 +91,8 @@ const EarningCard = ({ isLoading }) => {
                                         >
                                             <img src={EarningIcon} alt="Notification" />
                                         </Avatar>
-                                    </Grid>
-                                    <Grid item>
+                                    </Grid> */}
+                                    {/* <Grid item>
                                         <Avatar
                                             variant="rounded"
                                             sx={{
@@ -137,17 +137,20 @@ const EarningCard = ({ isLoading }) => {
                                                 <ArchiveTwoToneIcon sx={{ mr: 1.75 }} /> Archive File
                                             </MenuItem>
                                         </Menu>
-                                    </Grid>
+                                    </Grid> */}
                                 </Grid>
                             </Grid>
                             <Grid item>
                                 <Grid container alignItems="center">
                                     <Grid item>
                                         <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
-                                            $500.00
+                                            Junior Front-End Interview
+                                        </Typography>
+                                        <Typography sx={{ fontSize: '1.325rem', fontWeight: 200, mr: 1, mt: 0.75, mb: 2.75 }}>
+                                            Interview By (undefined now)
                                         </Typography>
                                     </Grid>
-                                    <Grid item>
+                                    {/* <Grid item>
                                         <Avatar
                                             sx={{
                                                 cursor: 'pointer',
@@ -158,7 +161,7 @@ const EarningCard = ({ isLoading }) => {
                                         >
                                             <ArrowUpwardIcon fontSize="inherit" sx={{ transform: 'rotate3d(1, 1, 1, 45deg)' }} />
                                         </Avatar>
-                                    </Grid>
+                                    </Grid> */}
                                 </Grid>
                             </Grid>
                             <Grid item sx={{ mb: 1.25 }}>
@@ -169,7 +172,7 @@ const EarningCard = ({ isLoading }) => {
                                         color: theme.palette.secondary[200]
                                     }}
                                 >
-                                    Total Earning
+                                    Status Pending
                                 </Typography>
                             </Grid>
                         </Grid>

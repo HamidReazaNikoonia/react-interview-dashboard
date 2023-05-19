@@ -11,6 +11,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AddIcon from '@mui/icons-material/Add';
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
@@ -50,7 +51,7 @@ const CreateInterview = () => {
     const [selectedFile, setselectedFile] = React.useState(null);
     const [disableForm, setDisableForm] = React.useState(false);
     const [resumeFile, setResumeFile] = React.useState(false);
-    const [savedResumeFile, setSavedResumeFile] = React.useState('');
+    const [savedResumeFile, setSavedResumeFile] = React.useState('867678');
 
     const formik = useFormik({
         initialValues: {
@@ -202,6 +203,26 @@ const CreateInterview = () => {
                                 <Box pb={1} pt={5}>
                                     {FileData()}
                                 </Box>
+
+                                <a style={{ color: '#364152', textDecoration: 'none' }} href="#">
+                                    <Box
+                                        p={3}
+                                        sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            border: '1px solid #364152',
+                                            borderRadius: '20px',
+                                            width: { xs: '100%', sm: 'calc(50% - 20px)', md: 'calc(33% - 20px)' }
+                                        }}
+                                    >
+                                        <InsertDriveFileIcon style={{ fontSize: '3rem' }} />
+
+                                        <Typography pt={1} variant="body1">
+                                            Watch Your Resume
+                                        </Typography>
+                                    </Box>
+                                </a>
+
                                 <Box style={{ display: 'flex', justifyContent: 'space-between', maxWidth: '80%' }} pt={3}>
                                     <Button mr={4} component="label" type="button" variant="contained" endIcon={<ChangeCircleIcon />}>
                                         <input hidden type="file" onChange={onFileChange} /> Change Resume

@@ -10,8 +10,8 @@ const icons = {
 
 const pages = {
     id: 'pages',
-    title: 'Pages',
-    caption: 'Pages Caption',
+    title: 'Sections',
+    caption: '',
     type: 'group',
     children: [
         {
@@ -39,16 +39,9 @@ const pages = {
             children: [
                 {
                     id: 'login3',
-                    title: 'Login',
+                    title: 'Logout',
                     type: 'item',
-                    url: '/pages/login/login3',
-                    target: true
-                },
-                {
-                    id: 'register3',
-                    title: 'Register',
-                    type: 'item',
-                    url: '/pages/register/register3',
+                    url: '/pages/login/logout',
                     target: true
                 }
             ]
