@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-
+import { useDispatch, useSelector } from 'react-redux';
 // material-ui
 import { useTheme } from '@mui/material/styles';
 import {
@@ -21,6 +21,7 @@ import {
     Typography,
     useMediaQuery
 } from '@mui/material';
+import LoadingButton from '@mui/lab/LoadingButton';
 
 // third party
 import * as Yup from 'yup';
@@ -34,6 +35,7 @@ import useScriptRef from 'hooks/useScriptRef';
 import Google from 'assets/images/icons/social-google.svg';
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
+import { setUser } from 'store/features/userSlice';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -41,6 +43,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 // ===========================|| FIREBASE - REGISTER ||=========================== //
 
+const phoneRegExp = /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/;
 const FirebaseRegister = ({ ...others }) => {
     const theme = useTheme();
     const navigate = useNavigate();
@@ -52,19 +55,32 @@ const FirebaseRegister = ({ ...others }) => {
     const [strength, setStrength] = useState(0);
     const [level, setLevel] = useState();
 
-    // 👇 Calling the Register Mutation
+    const dispatch = useDispatch(); // 👇 Calling the Register Mutation
     const [registerUser, { isLoading, isSuccess, error, isError, data }] = useRegisterUserMutation();
 
     useEffect(() => {
         if (isSuccess) {
-            toast.success(data?.message);
-            navigate('/verifyemail');
+            if (!data?.user || !data.token) {
+                toast.error('Login process have problem, plz try again :(', {
+                    position: 'top-right'
+                });
+                return false;
+            }
+            toast.success('Login process done', {
+                position: 'top-right'
+            });
+            dispatch(setUser(data));
+            console.log(data);
+            setTimeout(() => {
+                // navigate('/verifyemail');
+            }, 3000);
         }
 
         if (isError) {
-            if (Array.isArray(error.data.error)) {
-                error.data.error.forEach((el) =>
-                    toast.error(el.message, {
+            if (Array.isArray(error.data.errors)) {
+                console.log(error?.data?.errors);
+                error.data.errors.forEach((el) =>
+                    toast.error(el.messages[0], {
                         position: 'top-right'
                     })
                 );
@@ -75,7 +91,7 @@ const FirebaseRegister = ({ ...others }) => {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoading]);
+    }, [isLoading, isSuccess, isError]);
 
     const googleHandler = async () => {
         console.error('Register');
@@ -156,11 +172,15 @@ const FirebaseRegister = ({ ...others }) => {
                 initialValues={{
                     email: '',
                     password: '',
+                    fname: '',
+                    lname: '',
+                    mobile: '',
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
                     email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-                    password: Yup.string().max(255).required('Password is required')
+                    password: Yup.string().max(255).required('Password is required'),
+                    mobile: Yup.string().matches(phoneRegExp, 'Phone number is not valid')
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                     try {
@@ -169,7 +189,13 @@ const FirebaseRegister = ({ ...others }) => {
                             setSubmitting(false);
                         }
                         // 👇 Executing the RegisterUser Mutation
-                        registerUser(values);
+                        const { mobile, password, fname, lname, email } = values;
+                        registerUser({
+                            mobile,
+                            password,
+                            email,
+                            name: `${fname} - ${lname}`
+                        });
                     } catch (err) {
                         console.error(err);
                         if (scriptedRef.current) {
@@ -186,6 +212,9 @@ const FirebaseRegister = ({ ...others }) => {
                             <Grid item xs={12} sm={6}>
                                 <TextField
                                     fullWidth
+                                    value={values.fname}
+                                    onBlur={handleBlur}
+                                    onChange={handleChange}
                                     label="First Name"
                                     margin="normal"
                                     name="fname"
@@ -197,6 +226,9 @@ const FirebaseRegister = ({ ...others }) => {
                             <Grid item xs={12} sm={6}>
                                 <TextField
                                     fullWidth
+                                    value={values.lname}
+                                    onBlur={handleBlur}
+                                    onChange={handleChange}
                                     label="Last Name"
                                     margin="normal"
                                     name="lname"
@@ -220,6 +252,24 @@ const FirebaseRegister = ({ ...others }) => {
                             {touched.email && errors.email && (
                                 <FormHelperText error id="standard-weight-helper-text--register">
                                     {errors.email}
+                                </FormHelperText>
+                            )}
+                        </FormControl>
+
+                        <FormControl fullWidth error={Boolean(touched.mobile && errors.mobile)} sx={{ ...theme.typography.customInput }}>
+                            <InputLabel htmlFor="outlined-adornment-mobile-register">Mobile</InputLabel>
+                            <OutlinedInput
+                                id="outlined-adornment-mobile-register"
+                                type="text"
+                                value={values.mobile}
+                                name="mobile"
+                                onBlur={handleBlur}
+                                onChange={handleChange}
+                                inputProps={{}}
+                            />
+                            {touched.mobile && errors.mobile && (
+                                <FormHelperText error id="standard-weight-helper-text--register">
+                                    {errors.mobile}
                                 </FormHelperText>
                             )}
                         </FormControl>
@@ -313,8 +363,9 @@ const FirebaseRegister = ({ ...others }) => {
 
                         <Box sx={{ mt: 2 }}>
                             <AnimateButton>
-                                <Button
+                                <LoadingButton
                                     disableElevation
+                                    loading={isLoading}
                                     disabled={isSubmitting}
                                     fullWidth
                                     size="large"
@@ -323,7 +374,7 @@ const FirebaseRegister = ({ ...others }) => {
                                     color="secondary"
                                 >
                                     Sign up
-                                </Button>
+                                </LoadingButton>
                             </AnimateButton>
                         </Box>
                     </form>

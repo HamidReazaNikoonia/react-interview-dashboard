@@ -9,7 +9,9 @@ import themes from 'themes';
 
 // project imports
 import NavigationScroll from 'layout/NavigationScroll';
+import { ToastContainer } from 'react-toastify';
 
+import 'react-toastify/dist/ReactToastify.css';
 // ==============================|| APP ||============================== //
 
 const themeCustom = {
@@ -22,6 +24,7 @@ const App = () => {
             <ThemeProvider theme={themes(themeCustom)}>
                 <CssBaseline />
                 <NavigationScroll>
+                    <ToastContainer />
                     <Routes />
                 </NavigationScroll>
             </ThemeProvider>
