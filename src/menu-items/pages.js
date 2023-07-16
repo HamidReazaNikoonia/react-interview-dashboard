@@ -29,23 +29,23 @@ const pages = {
             url: '/create-interview',
             icon: icons.IconBrandChrome,
             breadcrumbs: false
-        },
-        {
-            id: 'authentication',
-            title: 'Authentication',
-            type: 'collapse',
-            icon: icons.IconKey,
-
-            children: [
-                {
-                    id: 'login3',
-                    title: 'Logout',
-                    type: 'item',
-                    url: '/pages/login/logout',
-                    target: true
-                }
-            ]
         }
+        // {
+        //     id: 'authentication',
+        //     title: 'Authentication',
+        //     type: 'collapse',
+        //     icon: icons.IconKey,
+
+        //     children: [
+        //         {
+        //             id: 'login3',
+        //             title: 'Logout',
+        //             type: 'item',
+        //             url: '/pages/login/logout',
+        //             target: true
+        //         }
+        //     ]
+        // }
     ]
 };
 

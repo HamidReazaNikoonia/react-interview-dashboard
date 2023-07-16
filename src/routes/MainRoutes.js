@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import ProtectedRoute from 'utils/ProtectedRoute';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -16,20 +17,52 @@ const CreateInterview = Loadable(lazy(() => import('views/create-interview')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
+const DashboardAuthContainer = () => {
+    return (
+        <ProtectedRoute>
+            <DashboardDefault />
+        </ProtectedRoute>
+    );
+};
+
+const InterviewListAuthContainer = () => {
+    return (
+        <ProtectedRoute>
+            <InterviewList />
+        </ProtectedRoute>
+    );
+};
+
+const InterviewResultAuthContainer = () => {
+    return (
+        <ProtectedRoute>
+            <InterviewResult />
+        </ProtectedRoute>
+    );
+};
+
+const CreateInterviewAuthContainer = () => {
+    return (
+        <ProtectedRoute>
+            <CreateInterview />
+        </ProtectedRoute>
+    );
+};
+
 const MainRoutes = {
     path: '/',
     element: <MainLayout />,
     children: [
         {
             path: '/',
-            element: <DashboardDefault />
+            element: <DashboardAuthContainer />
         },
         {
             path: 'dashboard',
             children: [
                 {
                     path: 'default',
-                    element: <DashboardDefault />
+                    element: <DashboardAuthContainer />
                 }
             ]
         },
@@ -39,15 +72,15 @@ const MainRoutes = {
         },
         {
             path: 'interview-list',
-            element: <InterviewList />
+            element: <InterviewListAuthContainer />
         },
         {
             path: 'interview-result/:id',
-            element: <InterviewResult />
+            element: <InterviewResultAuthContainer />
         },
         {
             path: 'create-interview',
-            element: <CreateInterview />
+            element: <CreateInterviewAuthContainer />
         }
     ]
 };

@@ -49,16 +49,24 @@ const FirebaseLogin = ({ ...others }) => {
     const navigate = useNavigate();
     const location = useLocation();
     // 👇 API Login Mutation
-    const [loginUser, { isLoading, isError, error, isSuccess }] = useLoginUserMutation();
+    const [loginUser, { isLoading, isError, error, isSuccess, data }] = useLoginUserMutation();
+
+    useEffect(() => {
+        const userToken = localStorage.getItem('user-token');
+        if (userToken && userToken !== 'undefined') {
+            return navigate('/');
+        }
+    }, [navigate]);
 
     useEffect(() => {
         if (isSuccess) {
+            console.log({ data });
             toast.success('You successfully logged in');
             navigate(from);
         }
         if (isError) {
             toast.error('Error');
-            if (Array.isArray(error.data.error)) {
+            if (Array.isArray(error?.data?.error)) {
                 error.data.error.forEach((el) =>
                     toast.error(el.message, {
                         position: 'top-right'

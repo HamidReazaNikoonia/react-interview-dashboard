@@ -59,6 +59,13 @@ const FirebaseRegister = ({ ...others }) => {
     const [registerUser, { isLoading, isSuccess, error, isError, data }] = useRegisterUserMutation();
 
     useEffect(() => {
+        const userToken = localStorage.getItem('user-token');
+        if (userToken && userToken !== 'undefined') {
+            return navigate('/');
+        }
+    }, [navigate]);
+
+    useEffect(() => {
         if (isSuccess) {
             if (!data?.user || !data.token) {
                 toast.error('Login process have problem, plz try again :(', {

@@ -51,14 +51,15 @@ const CreateInterview = () => {
     const [selectedFile, setselectedFile] = React.useState(null);
     const [disableForm, setDisableForm] = React.useState(false);
     const [resumeFile, setResumeFile] = React.useState(false);
-    const [savedResumeFile, setSavedResumeFile] = React.useState('867678');
+    const [savedResumeFile, setSavedResumeFile] = React.useState('');
 
     const formik = useFormik({
         initialValues: {
             stack: 'FULL_STACK',
             level: 'JUNIOR',
             linkdinProfile: '',
-            githubProfile: ''
+            githubProfile: '',
+            origin: 'ENGLISH'
         },
         validationSchema: validationSchema,
         // validadeOnMount: true,
@@ -147,6 +148,24 @@ const CreateInterview = () => {
             </Typography>
             <form onSubmit={formik.handleSubmit}>
                 <Grid py={10} container spacing={5} justifyContent="center" alignItems="center">
+                    {/* English/Persian Interview */}
+                    <Grid item xs={12}>
+                        <InputLabel id="demo-simple-select-helper-label">Select Your Interview For</InputLabel>
+                        <Select
+                            fullWidth
+                            labelId="demo-simple-select-helper-label"
+                            id="demo-simple-select-helper"
+                            name="origin"
+                            label="origin"
+                            value={formik.values.origin}
+                            onChange={formik.handleChange}
+                            error={formik.touched.origin && Boolean(formik.errors.origin)}
+                        >
+                            <MenuItem value="ENGLISH">English Company</MenuItem>
+                            <MenuItem value="PERSIAN">Persian Company</MenuItem>
+                        </Select>
+                        <FormHelperText>Select Your Interview for Iraninan comapny or English company</FormHelperText>
+                    </Grid>
                     <Grid item xs={12} md={6}>
                         <InputLabel id="demo-simple-select-helper-label">Your Stack</InputLabel>
                         <Select
