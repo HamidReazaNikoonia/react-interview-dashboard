@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -31,6 +32,7 @@ import useScriptRef from 'hooks/useScriptRef';
 import AnimateButton from 'ui-component/extended/AnimateButton';
 
 import { useLoginUserMutation } from 'store/api/authApi';
+import { setUser } from 'store/features/userSlice';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -46,6 +48,7 @@ const FirebaseLogin = ({ ...others }) => {
     const matchDownSM = useMediaQuery(theme.breakpoints.down('md'));
 
     const [checked, setChecked] = useState(true);
+    const dispatch = useDispatch(); // 👇 Calling the Register Mutation
     const navigate = useNavigate();
     const location = useLocation();
     // 👇 API Login Mutation
@@ -60,9 +63,25 @@ const FirebaseLogin = ({ ...others }) => {
 
     useEffect(() => {
         if (isSuccess) {
+            if (!data?.user || !data.token) {
+                toast.error('Login process have problem, plz try again :(', {
+                    position: 'top-right'
+                });
+                navigate('/auth/login');
+                return false;
+            }
             console.log({ data });
             toast.success('You successfully logged in');
-            navigate(from);
+            dispatch(setUser(data));
+
+            if (data.token) {
+                if (data.token.accessToken && data.token.accessToken !== '') {
+                    localStorage.setItem('user-token', data.token.accessToken);
+                    setTimeout(() => {
+                        navigate(from);
+                    }, 3000);
+                }
+            }
         }
         if (isError) {
             toast.error('Error');

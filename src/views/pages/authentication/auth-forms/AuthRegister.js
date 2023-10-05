@@ -68,19 +68,25 @@ const FirebaseRegister = ({ ...others }) => {
     useEffect(() => {
         if (isSuccess) {
             if (!data?.user || !data.token) {
-                toast.error('Login process have problem, plz try again :(', {
+                toast.error('Register process have problem, plz try again :(', {
                     position: 'top-right'
                 });
                 return false;
             }
-            toast.success('Login process done', {
+            toast.success('Register process done', {
                 position: 'top-right'
             });
             dispatch(setUser(data));
+
+            if (data.token) {
+                if (data.token.accessToken && data.token.accessToken !== '') {
+                    localStorage.setItem('user-token', data.token.accessToken);
+                    setTimeout(() => {
+                        navigate('/');
+                    }, 3000);
+                }
+            }
             console.log(data);
-            setTimeout(() => {
-                // navigate('/verifyemail');
-            }, 3000);
         }
 
         if (isError) {
@@ -170,7 +176,7 @@ const FirebaseRegister = ({ ...others }) => {
                 </Grid>
                 <Grid item xs={12} container alignItems="center" justifyContent="center">
                     <Box sx={{ mb: 2 }}>
-                        <Typography variant="subtitle1">Sign up with Email address</Typography>
+                        <Typography variant="subtitle1">Sign up with Email address and Mobile </Typography>
                     </Box>
                 </Grid>
             </Grid>
