@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as yup from 'yup';
 import { useFormik } from 'formik';
 import { toast } from 'react-toastify';
+import axios from 'axios';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 // material-ui
@@ -65,6 +66,18 @@ const CreateInterview = () => {
         // validadeOnMount: true,
         isInitialValid: false,
         onSubmit: (values) => {
+            const user_input = JSON.stringify(values, null, 2);
+
+            // Check upload resume
+            if (!resumeFile || resumeFile === ' ') {
+                if (!confirm('Do you Want Apply with Resume')) {
+                    return false;
+                }
+                toast.info('you apply without reume file', {
+                    position: 'bottom-right'
+                });
+            }
+
             alert(JSON.stringify(values, null, 2));
             toast.success('Your Interview Session Created');
             toast.error('some error', {
@@ -86,21 +99,56 @@ const CreateInterview = () => {
         console.log(selectedFile);
     };
 
+    /**
+     * ***** UPLOAD RESUME FILE SECTION *****
+     */
+
     const onFileUpload = () => {
         // Create an object of formData
         event.preventDefault();
         const formData = new FormData();
 
         // Update the formData object
-        formData.append('upload', selectedFile, selectedFile?.name);
-
-        // Details of the uploaded file
-        setResumeFile('87897');
-        toast.success('Your Resume successfully Uploaded');
+        formData.append('interview-kit-File', selectedFile, selectedFile?.name);
 
         // Request made to the backend api
         // Send formData object
-        // axios.post("api/uploadfile", formData);
+        axios
+            .post('http://localhost:3000/v1/upload', formData)
+            .then((data) => {
+                // check if file upload successfully
+                if (data?.status === 200 && data?.data?.uploadedFile) {
+                    if (data.data.uploadedFile._id) {
+                        toast.success('Your Resume successfully Uploaded');
+                        setResumeFile(data.data.uploadedFile._id);
+                    }
+                } else {
+                    toast.error('You File Could Not Upload, Please Try Again', {
+                        position: 'top-right'
+                    });
+                }
+                console.log(data);
+            })
+            .catch((err) => {
+                if (err.response) {
+                    console.log('API error');
+                    toast.error('You File Could Not Upload, Please Try Again', {
+                        position: 'top-right'
+                    });
+
+                    if (err.response?.data) {
+                        if (err.response.data.code === 500) {
+                            toast.error(err.response.data?.message, {
+                                position: 'top-right'
+                            });
+                        }
+                        console.log(err.response.data);
+                    }
+                    console.log(err.response);
+                }
+            });
+
+        // Details of the uploaded file
     };
 
     const formValidation = (formik__) => {
@@ -113,7 +161,7 @@ const CreateInterview = () => {
 
     React.useEffect(() => {
         formValidation(formik);
-        console.log(formik);
+        // console.log(formik);
     }, [formik, formValidation]);
 
     // file upload is complete
@@ -123,7 +171,7 @@ const CreateInterview = () => {
                 <div>
                     <Typography pb={2} variant="h5">
                         {' '}
-                        File Details{' '}
+                        File Details <h1> {resumeFile} </h1>
                     </Typography>
                     <Typography variant="body2"> File Name: {selectedFile?.name} </Typography>
                     <Typography variant="body2"> File Type: {selectedFile?.type} </Typography>
@@ -146,7 +194,7 @@ const CreateInterview = () => {
                 dolor in reprehended in voltage veil esse colum doolie eu fujian bulla parian. Exceptive sin ocean cuspidate non president,
                 sunk in culpa qui officiate descent molls anim id est labours.
             </Typography>
-            <form onSubmit={formik.handleSubmit}>
+            <form>
                 <Grid py={10} container spacing={5} justifyContent="center" alignItems="center">
                     {/* English/Persian Interview */}
                     <Grid item xs={12}>
@@ -332,16 +380,7 @@ const CreateInterview = () => {
                         />
                     </Grid>
                     <Grid display="flex" justifyContent="center" item xs={12} pt={10}>
-                        <LoadingButton
-                            size="large"
-                            loading
-                            px={12}
-                            type="button"
-                            onClick={() => {
-                                console.log('');
-                            }}
-                            variant="contained"
-                        >
+                        <LoadingButton size="large" loading={false} px={12} type="button" onClick={formik.handleSubmit} variant="contained">
                             Apply
                         </LoadingButton>
                     </Grid>
