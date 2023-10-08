@@ -8,7 +8,20 @@ const baseUrl = `${process.env.REACT_APP_SERVER_ENDPOINT}/`;
 const mutex = new Mutex();
 
 const baseQuery = fetchBaseQuery({
-    baseUrl
+    baseUrl,
+    prepareHeaders: (headers, { getState }) => {
+        // const token = getState().userState.user.token.accessToken;
+        const token = localStorage.getItem('user-token') || '';
+        console.log(getState().userState);
+        console.log('hoooo');
+
+        // If we have a token set in state, let's assume that we should be passing it.
+        if (token) {
+            headers.set('authorization', `Bearer ${token}`);
+        }
+
+        return headers;
+    }
 });
 
 const customFetchBase = async (args, api, extraOptions) => {

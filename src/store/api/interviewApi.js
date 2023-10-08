@@ -9,9 +9,8 @@ export const interviewApi = createApi({
         createInterview: builder.mutation({
             query(interview) {
                 return {
-                    url: '/posts',
+                    url: `/interview/${interview.userId}/record`,
                     method: 'POST',
-                    credentials: 'include',
                     body: interview
                 };
             },

@@ -1,10 +1,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
 import { useFormik } from 'formik';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import LoadingButton from '@mui/lab/LoadingButton';
+
+import { useGetMeQuery } from '../../store/api/userApi';
+import { useCreateInterviewMutation } from '../../store/api/interviewApi';
 
 // material-ui
 import { Grid, Typography, InputLabel, MenuItem, FormHelperText, FormControl, TextField, Box, Button, Divider } from '@mui/material';
@@ -13,9 +17,11 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AddIcon from '@mui/icons-material/Add';
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import CircularProgressWithLabel from '../../ui-component/circularProgressWithLabel';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
+import { useState } from 'react';
 
 // ==============================|| CREATE INTERVIEW ||============================== //
 
@@ -52,7 +58,30 @@ const CreateInterview = () => {
     const [selectedFile, setselectedFile] = React.useState(null);
     const [disableForm, setDisableForm] = React.useState(false);
     const [resumeFile, setResumeFile] = React.useState(false);
+    const [uploadProgress, setUploadProgress] = React.useState(0);
     const [savedResumeFile, setSavedResumeFile] = React.useState('');
+
+    // Upload button state
+    const [uploadbuttonDisable, setuploadbuttonDisable] = React.useState(false);
+
+    const { data: userFromServer, isLoading, isFetching, isError, error } = useGetMeQuery();
+    const [createInterviewMutation, { isLoading: loadingCreateMutation }] = useCreateInterviewMutation();
+
+    const leftDrawerOpened = useSelector((state) => state.ui.opened);
+
+    const handleAddInterview = async (data) => {
+        try {
+            await createInterviewMutation(data);
+        } catch {
+            toast.error({
+                title: 'An error occurred',
+                description: "We couldn't save your post, try again!",
+                status: 'error',
+                duration: 2000,
+                isClosable: true
+            });
+        }
+    };
 
     const formik = useFormik({
         initialValues: {
@@ -60,16 +89,14 @@ const CreateInterview = () => {
             level: 'JUNIOR',
             linkdinProfile: '',
             githubProfile: '',
-            origin: 'ENGLISH'
+            origin: 'ENG'
         },
         validationSchema: validationSchema,
         // validadeOnMount: true,
         isInitialValid: false,
         onSubmit: (values) => {
-            const user_input = JSON.stringify(values, null, 2);
-
             // Check upload resume
-            if (!resumeFile || resumeFile === ' ') {
+            if (!resumeFile || resumeFile?.id === ' ') {
                 if (!confirm('Do you Want Apply with Resume')) {
                     return false;
                 }
@@ -78,11 +105,24 @@ const CreateInterview = () => {
                 });
             }
 
-            alert(JSON.stringify(values, null, 2));
-            toast.success('Your Interview Session Created');
-            toast.error('some error', {
-                position: 'top-right'
+            // SEND TO API
+            handleAddInterview({
+                userId: userFromServer.id,
+                stack: values.stack,
+                level: values.level,
+                social: {
+                    linkedinProfile: values.linkdinProfile,
+                    githubProfile: values.githubProfile
+                },
+                origin: values.origin,
+                ...(resumeFile.id && { resumeFile: resumeFile.id })
             });
+
+            // alert(JSON.stringify(values, null, 2));
+            //     toast.success('Your Interview Session Created');
+            //     toast.error('some error', {
+            //         position: 'top-right'
+            //     });
         }
     });
 
@@ -95,8 +135,10 @@ const CreateInterview = () => {
 
     const onFileChange = (event) => {
         // Update the state
+
+        console.log({ kir1: event.target.files[0] });
         setselectedFile(event.target.files[0]);
-        console.log(selectedFile);
+        console.log({ kir2: selectedFile });
     };
 
     /**
@@ -104,6 +146,19 @@ const CreateInterview = () => {
      */
 
     const onFileUpload = () => {
+        // Avoid Upload same file
+        setUploadProgress(0);
+
+        console.log({ prev: resumeFile?.name, next: selectedFile?.name });
+        if (resumeFile?.name === selectedFile?.name) {
+            toast.error('This File uploaded, Please Try Another File', {
+                position: 'top-right'
+            });
+            return false;
+        }
+
+        setuploadbuttonDisable(true);
+
         // Create an object of formData
         event.preventDefault();
         const formData = new FormData();
@@ -113,14 +168,23 @@ const CreateInterview = () => {
 
         // Request made to the backend api
         // Send formData object
+
+        const onUploadProgress = (progressEvent) => {
+            const { loaded, total } = progressEvent;
+            let precentage = Math.floor((loaded * 100) / total);
+            setUploadProgress(precentage === 100 ? 0 : precentage);
+        };
+
         axios
-            .post('http://localhost:3000/v1/upload', formData)
+            .post('http://localhost:3000/v1/upload', formData, {
+                onUploadProgress
+            })
             .then((data) => {
                 // check if file upload successfully
                 if (data?.status === 200 && data?.data?.uploadedFile) {
                     if (data.data.uploadedFile._id) {
                         toast.success('Your Resume successfully Uploaded');
-                        setResumeFile(data.data.uploadedFile._id);
+                        setResumeFile({ id: data.data.uploadedFile._id, name: data.data.uploadedFile.original_name });
                     }
                 } else {
                     toast.error('You File Could Not Upload, Please Try Again', {
@@ -146,6 +210,9 @@ const CreateInterview = () => {
                     }
                     console.log(err.response);
                 }
+            })
+            .finally(() => {
+                setuploadbuttonDisable(false);
             });
 
         // Details of the uploaded file
@@ -170,9 +237,13 @@ const CreateInterview = () => {
             return (
                 <div>
                     <Typography pb={2} variant="h5">
-                        {' '}
-                        File Details <h1> {resumeFile} </h1>
+                        File Details
                     </Typography>
+                    {uploadProgress !== 0 && uploadProgress !== 100 && (
+                        <Box py={3} sx={{ display: 'flex' }}>
+                            <CircularProgressWithLabel variant="determinate" value={uploadProgress} />
+                        </Box>
+                    )}
                     <Typography variant="body2"> File Name: {selectedFile?.name} </Typography>
                     <Typography variant="body2"> File Type: {selectedFile?.type} </Typography>
                 </div>
@@ -209,8 +280,8 @@ const CreateInterview = () => {
                             onChange={formik.handleChange}
                             error={formik.touched.origin && Boolean(formik.errors.origin)}
                         >
-                            <MenuItem value="ENGLISH">English Company</MenuItem>
-                            <MenuItem value="PERSIAN">Persian Company</MenuItem>
+                            <MenuItem value="ENG">English Company</MenuItem>
+                            <MenuItem value="PR">Persian Company</MenuItem>
                         </Select>
                         <FormHelperText>Select Your Interview for Iraninan comapny or English company</FormHelperText>
                     </Grid>
@@ -323,7 +394,7 @@ const CreateInterview = () => {
                                     </Button>
 
                                     <Button
-                                        disabled={!selectedFile}
+                                        disabled={!selectedFile || uploadbuttonDisable}
                                         ml={6}
                                         type="button"
                                         onClick={onFileUpload}

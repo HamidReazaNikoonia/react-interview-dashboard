@@ -10,11 +10,10 @@ export const userApi = createApi({
         getMe: builder.query({
             query() {
                 return {
-                    url: 'users/me',
-                    credentials: 'include'
+                    url: 'users/profile'
                 };
             },
-            transformResponse: (result) => result.data.user,
+            // transformResponse: (result) => result.data.user,
             async onQueryStarted(args, { dispatch, queryFulfilled }) {
                 try {
                     const { data } = await queryFulfilled;
@@ -24,3 +23,5 @@ export const userApi = createApi({
         })
     })
 });
+
+export const { useGetMeQuery } = userApi;
