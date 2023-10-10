@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
 import { useFormik } from 'formik';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import LoadingButton from '@mui/lab/LoadingButton';
 
@@ -22,6 +23,7 @@ import CircularProgressWithLabel from '../../ui-component/circularProgressWithLa
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
 import { useState } from 'react';
+import { useEffect } from 'react';
 
 // ==============================|| CREATE INTERVIEW ||============================== //
 
@@ -64,8 +66,10 @@ const CreateInterview = () => {
     // Upload button state
     const [uploadbuttonDisable, setuploadbuttonDisable] = React.useState(false);
 
-    const { data: userFromServer, isLoading, isFetching, isError, error } = useGetMeQuery();
-    const [createInterviewMutation, { isLoading: loadingCreateMutation }] = useCreateInterviewMutation();
+    const navigate = useNavigate();
+
+    const { data: userFromServer, isLoading, isFetching } = useGetMeQuery();
+    const [createInterviewMutation, { isLoading: loadingCreateMutation, isSuccess, isError, data }] = useCreateInterviewMutation();
 
     const leftDrawerOpened = useSelector((state) => state.ui.opened);
 
@@ -82,6 +86,39 @@ const CreateInterview = () => {
             });
         }
     };
+
+    const paymentErrorThrow = () => {
+        toast.error('We have ISSUE from Bank API, please wait a few seccond', {
+            position: 'top-right'
+        });
+    };
+
+    useEffect(() => {
+        if (isSuccess) {
+            console.log({ data });
+            toast.success('Your Interview Will be Set');
+            if (data) {
+                if (data.payment) {
+                    window.location.href = data.payment.url;
+                } else {
+                    paymentErrorThrow();
+                }
+            } else {
+                toast.error('Some mistake happen, please reload the page and try again', {
+                    position: 'top-right'
+                });
+            }
+            // navigate('/interview-list');
+        }
+    }, [isSuccess]);
+
+    useEffect(() => {
+        if (isError) {
+            toast.error('Some mistake happen, please reload the page and try again', {
+                position: 'top-right'
+            });
+        }
+    }, [isError]);
 
     const formik = useFormik({
         initialValues: {
@@ -451,7 +488,14 @@ const CreateInterview = () => {
                         />
                     </Grid>
                     <Grid display="flex" justifyContent="center" item xs={12} pt={10}>
-                        <LoadingButton size="large" loading={false} px={12} type="button" onClick={formik.handleSubmit} variant="contained">
+                        <LoadingButton
+                            size="large"
+                            loading={loadingCreateMutation}
+                            px={12}
+                            type="button"
+                            onClick={formik.handleSubmit}
+                            variant="contained"
+                        >
                             Apply
                         </LoadingButton>
                     </Grid>

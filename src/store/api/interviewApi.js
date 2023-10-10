@@ -14,8 +14,8 @@ export const interviewApi = createApi({
                     body: interview
                 };
             },
-            invalidatesTags: [{ type: 'Interview', id: 'LIST' }],
-            transformResponse: (result) => result.data.interview
+            invalidatesTags: [{ type: 'Interview', id: 'LIST' }]
+            // transformResponse: (result) => result.data
         }),
         updateInterview: builder.mutation({
             query({ id, interview }) {
