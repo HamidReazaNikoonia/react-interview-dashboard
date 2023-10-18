@@ -72,8 +72,22 @@ export const interviewApi = createApi({
                 };
             },
             invalidatesTags: [{ type: 'Interview', id: 'LIST' }]
+        }),
+        // coach
+        getCoachByCode: builder.query({
+            query(coachCode) {
+                return {
+                    url: `/coach/${coachCode}`
+                };
+            }
         })
     })
 });
 
-export const { useCreateInterviewMutation, useDeleteInterviewMutation, useUpdateInterviewMutation, useGetAllInterviewQuery } = interviewApi;
+export const {
+    useCreateInterviewMutation,
+    useDeleteInterviewMutation,
+    useUpdateInterviewMutation,
+    // useGetAllInterviewQuery,
+    useLazyGetCoachByCodeQuery
+} = interviewApi;

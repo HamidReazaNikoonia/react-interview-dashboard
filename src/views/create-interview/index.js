@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
 import { useFormik } from 'formik';
@@ -9,10 +10,22 @@ import axios from 'axios';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 import { useGetMeQuery } from '../../store/api/userApi';
-import { useCreateInterviewMutation } from '../../store/api/interviewApi';
+import { useCreateInterviewMutation, useLazyGetCoachByCodeQuery } from '../../store/api/interviewApi';
 
 // material-ui
-import { Grid, Typography, InputLabel, MenuItem, FormHelperText, FormControl, TextField, Box, Button, Divider } from '@mui/material';
+import {
+    Grid,
+    Typography,
+    InputLabel,
+    MenuItem,
+    FormHelperText,
+    FormControl,
+    TextField,
+    Box,
+    Button,
+    Divider,
+    ButtonBase
+} from '@mui/material';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AddIcon from '@mui/icons-material/Add';
@@ -22,8 +35,9 @@ import CircularProgressWithLabel from '../../ui-component/circularProgressWithLa
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
-import { useState } from 'react';
-import { useEffect } from 'react';
+
+// Content
+import content from '../../content/create-interview-form';
 
 // ==============================|| CREATE INTERVIEW ||============================== //
 
@@ -66,9 +80,20 @@ const CreateInterview = () => {
     // Upload button state
     const [uploadbuttonDisable, setuploadbuttonDisable] = React.useState(false);
 
+    // UI STATE
+    // Toggle Coach Id Form
+    const [toggleCoachIdForm, settoggleCoachIdForm] = useState(false);
+
+    // Coach State
+    const [coachIdInputError, setcoachIdInputError] = useState(null);
+    const [coachIdInput, setcoachIdInput] = useState(null);
+
     const navigate = useNavigate();
 
-    const { data: userFromServer, isLoading, isFetching } = useGetMeQuery();
+    const { data: userFromServer, isLoading, isFetching } = useGetMeQuery({ refetchOnMountOrArgChange: true });
+    const [getCoachByCode, { data: coachByCodeData, isLoading: coachByCodeIsLoading, error: coachByCodeError }] =
+        useLazyGetCoachByCodeQuery();
+
     const [createInterviewMutation, { isLoading: loadingCreateMutation, isSuccess, isError, data }] = useCreateInterviewMutation();
 
     const leftDrawerOpened = useSelector((state) => state.ui.opened);
@@ -87,6 +112,26 @@ const CreateInterview = () => {
         }
     };
 
+    const handleSubmitCoachCode = async () => {
+        if (!coachIdInput || coachIdInput === ' ' || coachIdInput.length < 6) {
+            setcoachIdInputError('kire khar');
+            return false;
+        }
+        try {
+            await getCoachByCode(coachIdInput);
+        } catch (e) {
+            console.error('Coach Code Submit Handler');
+            console.log(e);
+            toast.error({
+                title: 'An error occurred',
+                description: "We couldn't save your post, try again!",
+                status: 'error',
+                duration: 2000,
+                isClosable: true
+            });
+        }
+    };
+
     const paymentErrorThrow = () => {
         toast.error('We have ISSUE from Bank API, please wait a few seccond', {
             position: 'top-right'
@@ -94,11 +139,25 @@ const CreateInterview = () => {
     };
 
     useEffect(() => {
+        localStorage.setItem('paymentOnQueue', null);
+    }, []);
+
+    useEffect(() => {
         if (isSuccess) {
             console.log({ data });
-            toast.success('Your Interview Will be Set');
+            // toast.success('Your Interview Will be Set', {
+            //     autoClose: 1000,
+            //     hideProgressBar: false
+            // });
             if (data) {
                 if (data.payment) {
+                    toast.info('Please wait untill migrate to Banks page', {
+                        autoClose: false,
+                        position: 'top-center',
+                        hideProgressBar: true
+                    });
+                    // Interview_id, interview_amount, factorNumber
+                    localStorage.setItem('paymentOnQueue', JSON.stringify([data.record._id, data.record.amount, data.factorNumber]));
                     window.location.href = data.payment.url;
                 } else {
                     paymentErrorThrow();
@@ -147,6 +206,7 @@ const CreateInterview = () => {
                 userId: userFromServer.id,
                 stack: values.stack,
                 level: values.level,
+                coachId: values.coachId,
                 social: {
                     linkedinProfile: values.linkdinProfile,
                     githubProfile: values.githubProfile
@@ -296,14 +356,71 @@ const CreateInterview = () => {
 
     return (
         <MainCard title="Create New Interview Session">
-            <Typography variant="body2">
-                Lorem ipsum dolor sit amen, consenter nipissing eli, sed do elusion tempos incident ut laborers et doolie magna alissa. Ut
-                enif ad minim venice, quin nostrum exercitation illampu laborings nisi ut liquid ex ea commons construal. Duos aube grue
-                dolor in reprehended in voltage veil esse colum doolie eu fujian bulla parian. Exceptive sin ocean cuspidate non president,
-                sunk in culpa qui officiate descent molls anim id est labours.
+            <Typography sx={{ whiteSpace: 'pre-line' }} variant="body2">
+                {content.formDescription || ''}
             </Typography>
             <form>
                 <Grid py={10} container spacing={5} justifyContent="center" alignItems="center">
+                    {/* Select Your Coach  */}
+                    <Grid item xs={12}>
+                        <Box p={6} style={{ width: '100%', borderRadius: 20, backgroundColor: '#f3f3f3' }}>
+                            {toggleCoachIdForm ? (
+                                <React.Fragment>
+                                    <Grid item xs={12} pb={4}>
+                                        <Typography component="div" mt={1} variant="body" color="gray">
+                                            If you want have interview with specific coach you shoul enter coach code here
+                                        </Typography>
+                                    </Grid>
+
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            fullWidth
+                                            id="coach_id"
+                                            name="coach_id"
+                                            label="Enter Coach Code"
+                                            value={coachIdInput}
+                                            onChange={(e) => setcoachIdInput(e.target.value)}
+                                            error={coachIdInputError}
+                                            helperText={coachIdInputError && coachIdInputError}
+                                        />
+                                        <Box mt={2}>
+                                            <Button type="button" variant="contained" onClick={handleSubmitCoachCode}>
+                                                Submit
+                                            </Button>
+                                        </Box>
+                                    </Grid>
+
+                                    <Grid item xs={12} pt={2}>
+                                        <Typography href={`${process.env.rootDomain}/coach-list`} component="a" variant="body" color="blue">
+                                            or you can find in the list
+                                        </Typography>
+                                    </Grid>
+                                </React.Fragment>
+                            ) : (
+                                <Grid item xs={12} p={2}>
+                                    <Button
+                                        onClick={() => settoggleCoachIdForm(true)}
+                                        fullWidth
+                                        p={4}
+                                        component="label"
+                                        type="button"
+                                        variant="contained"
+                                    >
+                                        Select Specific Coach
+                                    </Button>
+                                    <Typography align="center" component="div" mt={1} variant="body" color="gray">
+                                        Or Get an appointment with one of our senior team member
+                                    </Typography>
+
+                                    <Typography align="center" component="div" variant="body" color="gray">
+                                        In this case please skip here and fill below form
+                                    </Typography>
+                                </Grid>
+                            )}
+                        </Box>
+                        <Divider sx={{ marginLeft: 0, width: '100%', paddingTop: '20px', listStyle: 'none' }} variant="inset" />
+                    </Grid>
+
                     {/* English/Persian Interview */}
                     <Grid item xs={12}>
                         <InputLabel id="demo-simple-select-helper-label">Select Your Interview For</InputLabel>
@@ -487,6 +604,7 @@ const CreateInterview = () => {
                             helperText={formik.touched.linkdinProfile && formik.errors.linkdinProfile}
                         />
                     </Grid>
+
                     <Grid display="flex" justifyContent="center" item xs={12} pt={10}>
                         <LoadingButton
                             size="large"

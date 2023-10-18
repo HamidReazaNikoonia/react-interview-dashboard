@@ -5,6 +5,7 @@ import customFetchBase from './customFetchBase';
 export const userApi = createApi({
     reducerPath: 'userApi',
     baseQuery: customFetchBase,
+    refetchOnFocus: true,
     tagTypes: ['User'],
     endpoints: (builder) => ({
         getMe: builder.query({
@@ -13,6 +14,7 @@ export const userApi = createApi({
                     url: 'users/profile'
                 };
             },
+            keepUnusedDataFor: 0,
             // transformResponse: (result) => result.data.user,
             async onQueryStarted(args, { dispatch, queryFulfilled }) {
                 try {
