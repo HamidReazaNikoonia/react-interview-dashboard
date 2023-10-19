@@ -87,12 +87,17 @@ const CreateInterview = () => {
     // Coach State
     const [coachIdInputError, setcoachIdInputError] = useState(null);
     const [coachIdInput, setcoachIdInput] = useState(null);
+    const [selectedCoach, setselectedCoach] = useState(null);
+    const [disableStackSlectInput, setdisableStackSlectInput] = useState(false);
+    const [disableLanguageSelectInput, setdisableLanguageSelectInput] = useState(false);
 
     const navigate = useNavigate();
 
     const { data: userFromServer, isLoading, isFetching } = useGetMeQuery({ refetchOnMountOrArgChange: true });
-    const [getCoachByCode, { data: coachByCodeData, isLoading: coachByCodeIsLoading, error: coachByCodeError }] =
-        useLazyGetCoachByCodeQuery();
+    const [
+        getCoachByCode,
+        { data: coachByCodeData, isFetching: coachByCodeIsLoading, error: coachByCodeError, isSuccess: coachByCodeIsSuccess }
+    ] = useLazyGetCoachByCodeQuery();
 
     const [createInterviewMutation, { isLoading: loadingCreateMutation, isSuccess, isError, data }] = useCreateInterviewMutation();
 
@@ -114,9 +119,11 @@ const CreateInterview = () => {
 
     const handleSubmitCoachCode = async () => {
         if (!coachIdInput || coachIdInput === ' ' || coachIdInput.length < 6) {
-            setcoachIdInputError('kire khar');
+            setselectedCoach(null);
+            setcoachIdInputError('please enter code corectly');
             return false;
         }
+        setcoachIdInputError(null);
         try {
             await getCoachByCode(coachIdInput);
         } catch (e) {
@@ -138,9 +145,54 @@ const CreateInterview = () => {
         });
     };
 
+    const findCoachErrorThrow = (msg) => {
+        toast.error(msg, {
+            position: 'top-right'
+        });
+
+        setcoachIdInputError(msg);
+    };
+
     useEffect(() => {
         localStorage.setItem('paymentOnQueue', null);
     }, []);
+
+    // Effect
+
+    useEffect(() => {
+        if (coachByCodeIsSuccess) {
+            if (!coachByCodeData?.coach[0]) {
+                findCoachErrorThrow('Coach with this code not existed');
+            }
+
+            if (coachByCodeData?.coach[0]?.status === false) {
+                findCoachErrorThrow('This coach could not have session');
+            }
+            setselectedCoach(coachByCodeData?.coach[0]);
+
+            // Language field logic
+            setdisableLanguageSelectInput(false);
+            const coachLanguages = coachByCodeData?.coach[0]?.lang[0];
+
+            if (coachLanguages) {
+                if (!coachLanguages.english || !coachLanguages.persian) {
+                    console.log('kire--khar');
+                    console.log(coachLanguages);
+                    console.log({ en: coachLanguages.english, pr: coachLanguages.persian });
+                    !!coachLanguages.english && formik.setFieldValue('origin', 'ENG');
+                    !!coachLanguages.persian && formik.setFieldValue('origin', 'PR');
+                    setdisableLanguageSelectInput(true);
+                }
+            }
+
+            setdisableStackSlectInput(true);
+
+            formik.setFieldValue('stack', coachByCodeData?.coach[0].stack);
+        }
+
+        console.log(coachByCodeData?.coach);
+        console.log(`coachByCodeData.coach[0]`);
+    }, [coachByCodeIsSuccess, coachByCodeData]);
 
     useEffect(() => {
         if (isSuccess) {
@@ -354,6 +406,40 @@ const CreateInterview = () => {
         }
     };
 
+    // helper function
+    const defineCoachStackLabel = (stack) => {
+        if (!stack || stack === '') return '';
+        switch (stack) {
+            case 'FRONT_END':
+                return 'Front-End developer';
+                break;
+            case 'BACK_END':
+                return 'Back-End developer';
+                break;
+            case 'FULL_STACK':
+                return 'Fullstack developer';
+                break;
+            case 'IOS':
+                return 'Mobile - IOS developer';
+                break;
+            case 'ANDROID':
+                return ' Mobile - Android developer';
+                break;
+            case 'DEVOPS':
+                return 'DevOps developer';
+                break;
+        }
+    };
+
+    const cancelCoachByCodeForm = () => {
+        settoggleCoachIdForm(false);
+        setselectedCoach(null);
+        setdisableStackSlectInput(false);
+        setdisableLanguageSelectInput(false);
+
+        // formik.setFieldValue('stack', 'ANDROID');
+    };
+
     return (
         <MainCard title="Create New Interview Session">
             <Typography sx={{ whiteSpace: 'pre-line' }} variant="body2">
@@ -368,9 +454,42 @@ const CreateInterview = () => {
                                 <React.Fragment>
                                     <Grid item xs={12} pb={4}>
                                         <Typography component="div" mt={1} variant="body" color="gray">
-                                            If you want have interview with specific coach you shoul enter coach code here
+                                            If you want have interview with specific coach you shoul enter coach code here or leave this
+                                            section
                                         </Typography>
                                     </Grid>
+
+                                    {selectedCoach && (
+                                        <Grid pb={4} item xs={12}>
+                                            <Typography pb={1} variant="h4" color="green">
+                                                Selected Coach
+                                            </Typography>
+                                            <Typography>
+                                                <span style={{ fontWeight: 'bold' }}>Name:</span> {selectedCoach.name}
+                                            </Typography>
+                                            <Typography>
+                                                <span style={{ fontWeight: 'bold' }}>Amount:</span> {selectedCoach.amount} toman
+                                            </Typography>
+                                            <Typography>
+                                                <span style={{ fontWeight: 'bold' }}>Stack:</span>{' '}
+                                                {defineCoachStackLabel(selectedCoach.stack)}
+                                            </Typography>
+                                            <Typography>
+                                                <span style={{ fontWeight: 'bold' }}>Status:</span>{' '}
+                                                {selectedCoach.status ? (
+                                                    'active'
+                                                ) : (
+                                                    <span style={{ color: 'red', fontWeight: 'bolder' }}>NOT ACTVE</span>
+                                                )}
+                                            </Typography>
+                                            {!selectedCoach.status && (
+                                                <Typography color="red" pt={1}>
+                                                    This coach not selected for you and you can define a session with one of the best coach
+                                                    in the team or use another coch code
+                                                </Typography>
+                                            )}
+                                        </Grid>
+                                    )}
 
                                     <Grid item xs={12}>
                                         <TextField
@@ -383,9 +502,17 @@ const CreateInterview = () => {
                                             error={coachIdInputError}
                                             helperText={coachIdInputError && coachIdInputError}
                                         />
-                                        <Box mt={2}>
-                                            <Button type="button" variant="contained" onClick={handleSubmitCoachCode}>
+                                        <Box display="flex" justifyContent="space-between" mt={2}>
+                                            <LoadingButton
+                                                loading={coachByCodeIsLoading}
+                                                type="button"
+                                                variant="contained"
+                                                onClick={handleSubmitCoachCode}
+                                            >
                                                 Submit
+                                            </LoadingButton>
+                                            <Button color="error" type="button" variant="contained" onClick={cancelCoachByCodeForm}>
+                                                Cancel
                                             </Button>
                                         </Box>
                                     </Grid>
@@ -426,6 +553,7 @@ const CreateInterview = () => {
                         <InputLabel id="demo-simple-select-helper-label">Select Your Interview For</InputLabel>
                         <Select
                             fullWidth
+                            disabled={disableLanguageSelectInput}
                             labelId="demo-simple-select-helper-label"
                             id="demo-simple-select-helper"
                             name="origin"
@@ -443,6 +571,7 @@ const CreateInterview = () => {
                         <InputLabel id="demo-simple-select-helper-label">Your Stack</InputLabel>
                         <Select
                             fullWidth
+                            disabled={disableStackSlectInput}
                             labelId="demo-simple-select-helper-label"
                             id="demo-simple-select-helper"
                             name="stack"
