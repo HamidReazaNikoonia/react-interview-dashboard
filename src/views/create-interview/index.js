@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
 import { useFormik } from 'formik';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import LoadingButton from '@mui/lab/LoadingButton';
 
@@ -70,6 +70,8 @@ const validationSchema = yup.object({
         )
 });
 
+const scrollToRef = (ref) => window.scrollTo(0, ref.current.offsetTop);
+
 const CreateInterview = () => {
     const [selectedFile, setselectedFile] = React.useState(null);
     const [disableForm, setDisableForm] = React.useState(false);
@@ -92,6 +94,9 @@ const CreateInterview = () => {
     const [disableLanguageSelectInput, setdisableLanguageSelectInput] = useState(false);
 
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    const coachSectionRef = useRef(null);
 
     const { data: userFromServer, isLoading, isFetching } = useGetMeQuery({ refetchOnMountOrArgChange: true });
     const [
@@ -116,6 +121,8 @@ const CreateInterview = () => {
             });
         }
     };
+
+    const executeScroll = () => scrollToRef(coachSectionRef);
 
     const handleSubmitCoachCode = async () => {
         if (!coachIdInput || coachIdInput === ' ' || coachIdInput.length < 6) {
@@ -153,6 +160,35 @@ const CreateInterview = () => {
         setcoachIdInputError(msg);
     };
 
+    const fetchCoachById = async (coachCode) => {
+        try {
+            await getCoachByCode(coachCode);
+        } catch (e) {
+            console.error('Coach Code Submit Handler');
+            console.log(e);
+            toast.error({
+                title: 'An error occurred',
+                description: "We couldn't save your post, try again!",
+                status: 'error',
+                duration: 2000,
+                isClosable: true
+            });
+        }
+    };
+
+    useEffect(() => {
+        // Get Coach From API
+        if (searchParams.get('coach_code') && searchParams.get('coach_code') !== ' ') {
+            if (searchParams.get('coach_code').length > 6) {
+                fetchCoachById(searchParams.get('coach_code'));
+                settoggleCoachIdForm(true);
+            }
+
+            // Validate Coach
+            // Show UI
+        }
+    }, [searchParams]);
+
     useEffect(() => {
         localStorage.setItem('paymentOnQueue', null);
     }, []);
@@ -168,26 +204,29 @@ const CreateInterview = () => {
             if (coachByCodeData?.coach[0]?.status === false) {
                 findCoachErrorThrow('This coach could not have session');
             }
-            setselectedCoach(coachByCodeData?.coach[0]);
 
-            // Language field logic
-            setdisableLanguageSelectInput(false);
-            const coachLanguages = coachByCodeData?.coach[0]?.lang[0];
+            if (coachByCodeData?.coach[0]) {
+                setselectedCoach(coachByCodeData?.coach[0]);
 
-            if (coachLanguages) {
-                if (!coachLanguages.english || !coachLanguages.persian) {
-                    console.log('kire--khar');
-                    console.log(coachLanguages);
-                    console.log({ en: coachLanguages.english, pr: coachLanguages.persian });
-                    !!coachLanguages.english && formik.setFieldValue('origin', 'ENG');
-                    !!coachLanguages.persian && formik.setFieldValue('origin', 'PR');
-                    setdisableLanguageSelectInput(true);
+                // Language field logic
+                setdisableLanguageSelectInput(false);
+                const coachLanguages = coachByCodeData?.coach[0]?.lang[0];
+
+                if (coachLanguages) {
+                    if (!coachLanguages.english || !coachLanguages.persian) {
+                        console.log('kire--khar');
+                        console.log(coachLanguages);
+                        console.log({ en: coachLanguages.english, pr: coachLanguages.persian });
+                        !!coachLanguages.english && formik.setFieldValue('origin', 'ENG');
+                        !!coachLanguages.persian && formik.setFieldValue('origin', 'PR');
+                        setdisableLanguageSelectInput(true);
+                    }
                 }
+
+                setdisableStackSlectInput(true);
+
+                formik.setFieldValue('stack', coachByCodeData?.coach[0].stack);
             }
-
-            setdisableStackSlectInput(true);
-
-            formik.setFieldValue('stack', coachByCodeData?.coach[0].stack);
         }
 
         console.log(coachByCodeData?.coach);
@@ -248,10 +287,28 @@ const CreateInterview = () => {
                 if (!confirm('Do you Want Apply with Resume')) {
                     return false;
                 }
-                toast.info('you apply without reume file', {
-                    position: 'bottom-right'
-                });
             }
+
+            // check coach status
+            if (selectedCoach?._id) {
+                if (!selectedCoach.status) {
+                    executeScroll();
+                    toast.info('Your selected coach not available now, please choose another one or cancel coach section', {
+                        position: 'bottom-right',
+                        closeButton: true,
+                        autoClose: 7000,
+                        closeOnClick: true
+                    });
+
+                    return false;
+                }
+            }
+
+            // alert(JSON.stringify(values, null, 2));
+            // toast.success('Your Interview Session Created');
+            // toast.error('some error', {
+            //     position: 'top-right'
+            // });
 
             // SEND TO API
             handleAddInterview({
@@ -264,14 +321,13 @@ const CreateInterview = () => {
                     githubProfile: values.githubProfile
                 },
                 origin: values.origin,
-                ...(resumeFile.id && { resumeFile: resumeFile.id })
+                ...(resumeFile?.id && { resumeFile: resumeFile.id }),
+                ...(selectedCoach?._id && { coachId: selectedCoach._id })
             });
 
-            // alert(JSON.stringify(values, null, 2));
-            //     toast.success('Your Interview Session Created');
-            //     toast.error('some error', {
-            //         position: 'top-right'
-            //     });
+            toast.info('sent', {
+                position: 'bottom-right'
+            });
         }
     });
 
@@ -448,7 +504,7 @@ const CreateInterview = () => {
             <form>
                 <Grid py={10} container spacing={5} justifyContent="center" alignItems="center">
                     {/* Select Your Coach  */}
-                    <Grid item xs={12}>
+                    <Grid ref={coachSectionRef} item xs={12}>
                         <Box p={6} style={{ width: '100%', borderRadius: 20, backgroundColor: '#f3f3f3' }}>
                             {toggleCoachIdForm ? (
                                 <React.Fragment>
