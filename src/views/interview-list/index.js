@@ -1,7 +1,11 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 // material-ui
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
+// UI Comp
 import Box from '@mui/material/Box';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
@@ -26,6 +30,10 @@ import EventBusyIcon from '@mui/icons-material/EventBusy';
 
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
+
+// Interview API
+import { useLazyGetAllInterviewsQuery, useUpdateInterviewMutation } from '../../store/api/interviewApi';
+import { useGetMeQuery } from '../../store/api/userApi';
 
 // ==============================|| SAMPLE PAGE ||============================== //
 
@@ -68,38 +76,107 @@ const mockData = [
     }
 ];
 
-function createData(selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus) {
+function createData(id, selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus) {
+    const subjectStackMap = {
+        FRONT_END: 'Front-End',
+        BACK_END: 'Back-End',
+        FULL_STACK: 'Full-Stack',
+        IOS: 'Mobile - IOS',
+        ANDROID: 'Mobile - Android',
+        DEVOPS: 'DevOps'
+    };
+
+    const interviewStatusMap = {
+        SELECTED_BY_USER: 'Wait For Cordinate',
+        ACCEPTED_BY_INTERVIEWER: 'Accepted By Coach',
+        FINISHED: 'Finished',
+        CANCELED: 'Canceled'
+    };
+
+    const paymentStatusMap = {
+        PROGRESS: 'Waiting For Pay',
+        CANCELED: 'Canceled',
+        PAYED: 'Paid'
+    };
+
+    // {Math.round(historyRow.amount * historyRow.total_price * 100) / 100}
+
+    // Format time function
+    const formatTimeStamp = (date) => {
+        const _date = new Date(date);
+        return _date.toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    };
+
     return {
-        selectedTime,
-        created_at,
-        stack,
-        status,
+        id,
+        created_at: formatTimeStamp(created_at),
+        stack: subjectStackMap[stack],
+        status: interviewStatusMap[status],
         history: [
             {
-                payment_status: paymentStatus,
+                payment_status: paymentStatusMap[paymentStatus],
                 coach_id: interviewUserId,
-                amount,
-                total_price: amount
+                amount: `${amount} Rials`,
+                total_price: `${amount} Rials`
             }
-        ]
+        ],
+        ...(selectedTime ? { selectedTime: formatTimeStamp(selectedTime) } : { selectedTime: 'Not Defined' })
     };
 }
 
 function MobileRow(props) {
-    const { row } = props;
+    const { row, fetchNewList, userId } = props;
     const [open, setOpen] = React.useState(false);
     // selectedTime, created_at, stack, status
 
+    const [updateInterviewCanceling, { isLoading: loadingUpdateMutation, isSuccess, isError, data }] = useUpdateInterviewMutation();
+
+    const [selectedInterviewForCanceling, setselectedInterviewForCanceling] = React.useState(null);
     const [openCancelDialog, setopenCancelDialog] = React.useState(false);
     // selectedTime, created_at, stack, status
 
+    React.useEffect(() => {
+        if (isSuccess) {
+            if (data.updatedRecord?.status === 'CANCELED') {
+                toast.success('Your Session Will Be Cancel Successfully ');
+                fetchNewList();
+            }
+            console.log(data.updatedRecord);
+            handleClose();
+        }
+    }, [isSuccess, data]);
+
     const handleClickOpen = (id) => {
         console.log(id);
+        setselectedInterviewForCanceling(id);
         setopenCancelDialog(true);
     };
 
     const handleClose = () => {
         setopenCancelDialog(false);
+    };
+
+    const cancelInterviewHandler = async () => {
+        // console.log({ in: selectedInterviewForCanceling });
+        if (!selectedInterviewForCanceling) {
+            handleClose();
+            toast.error('We Can Not Cancel This Session, Something Wrong', {
+                position: 'top-right'
+            });
+            return false;
+        }
+        try {
+            await updateInterviewCanceling({
+                id: selectedInterviewForCanceling,
+                userId: userId,
+                body: {}
+            });
+        } catch (e) {
+            console.log(e);
+            toast.error('We Can Not Cancel This Session, Please Try Again', {
+                position: 'top-right'
+            });
+        }
     };
 
     return (
@@ -122,12 +199,10 @@ function MobileRow(props) {
                                 size="large"
                                 mt={4}
                                 color="error"
-                                loading={false}
+                                loading={loadingUpdateMutation}
                                 px={12}
                                 type="button"
-                                onClick={() => {
-                                    console.log('');
-                                }}
+                                onClick={cancelInterviewHandler}
                                 variant="outlined"
                                 startIcon={<EventBusyIcon />}
                             >
@@ -140,7 +215,7 @@ function MobileRow(props) {
                     <Button onClick={handleClose}>Disagree</Button>
                 </DialogActions>
             </Dialog>
-            <TableRow hover sx={{ '& > *': { borderBottom: 'unset' } }}>
+            <TableRow hover sx={{ '& > *': { borderBottom: 'unset' }, ...(row.status === 'Canceled' && { opacity: '0.4' }) }}>
                 <TableCell>
                     {row.status === 'finished' ? (
                         <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
@@ -149,11 +224,15 @@ function MobileRow(props) {
                             </Link>
                         </IconButton>
                     ) : (
-                        <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-                            <Box onClick={() => handleClickOpen(row.id)} style={{ cursor: 'pointer' }} color="red">
-                                <EventBusyIcon color="red" />
-                            </Box>
-                        </IconButton>
+                        <React.Fragment>
+                            {row.status !== 'Canceled' && (
+                                <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+                                    <Box onClick={() => handleClickOpen(row.id)} style={{ cursor: 'pointer' }} color="red">
+                                        <EventBusyIcon color="red" />
+                                    </Box>
+                                </IconButton>
+                            )}
+                        </React.Fragment>
                     )}
                 </TableCell>
 
@@ -163,10 +242,10 @@ function MobileRow(props) {
                 <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
                     {row.selectedTime}
                 </TableCell>
-                <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
+                {/* <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
                     {row.stack}
-                </TableCell>
-                {/* <TableCell align="center">{row.status}</TableCell> */}
+                </TableCell> */}
+                <TableCell align="center">{row.status}</TableCell>
                 {/* <TableCell align="right">{row.created_at}</TableCell> */}
 
                 {/* <TableCell align="right">
@@ -178,18 +257,56 @@ function MobileRow(props) {
 }
 
 function Row(props) {
-    const { row } = props;
+    const { row, userId, fetchNewList } = props;
     const [open, setOpen] = React.useState(false);
     const [openCancelDialog, setopenCancelDialog] = React.useState(false);
+    const [selectedInterviewForCanceling, setselectedInterviewForCanceling] = React.useState(null);
     // selectedTime, created_at, stack, status
+
+    const [updateInterviewCanceling, { isLoading: loadingUpdateMutation, isSuccess, isError, data }] = useUpdateInterviewMutation();
+
+    React.useEffect(() => {
+        if (isSuccess) {
+            if (data.updatedRecord?.status === 'CANCELED') {
+                toast.success('Your Session Will Be Cancel Successfully ');
+                fetchNewList();
+            }
+            console.log(data.updatedRecord);
+            handleClose();
+        }
+    }, [isSuccess, data]);
 
     const handleClickOpen = (id) => {
         console.log(id);
+        setselectedInterviewForCanceling(id);
         setopenCancelDialog(true);
     };
 
     const handleClose = () => {
         setopenCancelDialog(false);
+    };
+
+    const cancelInterviewHandler = async () => {
+        // console.log({ in: selectedInterviewForCanceling });
+        if (!selectedInterviewForCanceling) {
+            handleClose();
+            toast.error('We Can Not Cancel This Session, Something Wrong', {
+                position: 'top-right'
+            });
+            return false;
+        }
+        try {
+            await updateInterviewCanceling({
+                id: selectedInterviewForCanceling,
+                userId: userId,
+                body: {}
+            });
+        } catch (e) {
+            console.log(e);
+            toast.error('We Can Not Cancel This Session, Please Try Again', {
+                position: 'top-right'
+            });
+        }
     };
 
     return (
@@ -212,12 +329,10 @@ function Row(props) {
                                 size="large"
                                 mt={4}
                                 color="error"
-                                loading={false}
+                                loading={loadingUpdateMutation}
                                 px={12}
                                 type="button"
-                                onClick={() => {
-                                    console.log('');
-                                }}
+                                onClick={cancelInterviewHandler}
                                 variant="outlined"
                                 startIcon={<EventBusyIcon />}
                             >
@@ -230,7 +345,7 @@ function Row(props) {
                     <Button onClick={handleClose}>Disagree</Button>
                 </DialogActions>
             </Dialog>
-            <TableRow hover sx={{ '& > *': { borderBottom: 'unset' } }}>
+            <TableRow hover sx={{ '& > *': { borderBottom: 'unset' }, ...(row.status === 'Canceled' && { opacity: '0.4' }) }}>
                 <TableCell>
                     <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
                         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -248,9 +363,14 @@ function Row(props) {
                     {row.status === 'finished' ? (
                         <Link to="/interview-result/99">SEE RESULT</Link>
                     ) : (
-                        <Box onClick={() => handleClickOpen(row.id)} style={{ cursor: 'pointer' }} color="red">
-                            Cancel Interview
-                        </Box>
+                        <React.Fragment>
+                            {/* <h1>{row.status}</h1> */}
+                            {row.status !== 'Canceled' && (
+                                <Box onClick={() => handleClickOpen(row.id)} style={{ cursor: 'pointer' }} color="red">
+                                    Cancel Interview
+                                </Box>
+                            )}
+                        </React.Fragment>
                     )}
                 </TableCell>
             </TableRow>
@@ -278,9 +398,7 @@ function Row(props) {
                                                 {historyRow.coach_id}
                                             </TableCell>
                                             <TableCell align="right">{historyRow.amount}</TableCell>
-                                            <TableCell align="right">
-                                                {Math.round(historyRow.amount * historyRow.total_price * 100) / 100}
-                                            </TableCell>
+                                            <TableCell align="right">{historyRow.total_price}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -296,9 +414,9 @@ function Row(props) {
 // selectedTime, created_at, stack, status
 // selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus, id
 
-const rows = mockData.map((data) => {
-    return createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending', 1000, 111, 'PAID');
-});
+// const rows = mockData.map((data) => {
+//     return createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending', 1000, 111, 'PAID');
+// });
 
 // const rows = [
 //     createData('1400/03/20', '159/ff/dd', 'Front-End (React)', 'pending'),
@@ -314,6 +432,59 @@ const SamplePage = () => {
     const theme = useTheme();
     const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
 
+    // State
+    const [data, setdata] = React.useState([]);
+
+    const { data: userFromServer, isLoading, isFetching } = useGetMeQuery();
+    const [
+        getInterviews,
+        { data: interviewsData, isFetching: interviewsIsLoading, error: interviewsError, isSuccess: interviewsIsSuccess }
+    ] = useLazyGetAllInterviewsQuery();
+
+    const getInterviewFetcher = async (id) => {
+        try {
+            await getInterviews(id);
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    React.useEffect(() => {
+        if (userFromServer?.id) {
+            console.log('kir');
+            console.log(interviewsData);
+            getInterviewFetcher({ id: userFromServer.id });
+        }
+    }, [userFromServer]);
+
+    React.useEffect(() => {
+        if (interviewsIsSuccess && interviewsData) {
+            console.log('interviews^^^^');
+            console.log(interviewsData);
+
+            const rows = interviewsData.map((data) => {
+                const interviewUserId = data?.interviewUserId?.name || 'Not Defined';
+                return createData(
+                    data._id,
+                    data.selectedTime,
+                    data.createdAt,
+                    data.stack,
+                    data.status,
+                    data.amount,
+                    interviewUserId,
+                    data.paymentStatus
+                );
+            });
+            setdata(rows);
+        }
+    }, [interviewsIsSuccess, interviewsData]);
+
+    console.log(interviewsData);
+
+    const refetch = () => {
+        getInterviewFetcher({ id: userFromServer.id });
+    };
+
     const DesktopTable = () => (
         <Table aria-label="collapsible table">
             <TableHead>
@@ -328,11 +499,13 @@ const SamplePage = () => {
                 </TableRow>
             </TableHead>
 
-            <TableBody>
-                {matchesXs
-                    ? rows.map((row) => <MobileRow key={row.name} row={row} />)
-                    : rows.map((row) => <Row key={row.name} row={row} />)}
-            </TableBody>
+            {data.length && (
+                <TableBody>
+                    {matchesXs
+                        ? data.map((row) => <MobileRow fetchNewList={refetch} userId={userFromServer.id} key={row.name} row={row} />)
+                        : data.map((row) => <Row fetchNewList={refetch} userId={userFromServer.id} key={row.name} row={row} />)}
+                </TableBody>
+            )}
         </Table>
     );
 
@@ -344,19 +517,22 @@ const SamplePage = () => {
                     <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
                         Interview Date
                     </TableCell>
-                    <TableCell style={{ fontSize: '12px', padding: 0 }} align="left">
-                        Subject
+                    <TableCell style={{ fontSize: '12px', padding: 0 }} align="center">
+                        Status
                     </TableCell>
                     {/* <TableCell align="center">Interview Status</TableCell> */}
                     {/* <TableCell align="right">MORE Info</TableCell> */}
                     {/* <TableCell align="right">Protein&nbsp;(g)</TableCell> */}
                 </TableRow>
             </TableHead>
-            <TableBody>
-                {rows.map((row) => (
-                    <MobileRow key={row.name} row={row} />
-                ))}
-            </TableBody>
+
+            {data.length && (
+                <TableBody>
+                    {data.map((row) => (
+                        <MobileRow fetchNewList={refetch} userId={userFromServer.id} key={row.name} row={row} />
+                    ))}
+                </TableBody>
+            )}
         </Table>
     );
 

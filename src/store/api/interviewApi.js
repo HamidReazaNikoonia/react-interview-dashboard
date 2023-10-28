@@ -4,6 +4,7 @@ import customFetchBase from './customFetchBase';
 export const interviewApi = createApi({
     reducerPath: 'interviewApi',
     baseQuery: customFetchBase,
+    refetchOnFocus: true,
     tagTypes: ['Interview'],
     endpoints: (builder) => ({
         createInterview: builder.mutation({
@@ -18,22 +19,13 @@ export const interviewApi = createApi({
             // transformResponse: (result) => result.data
         }),
         updateInterview: builder.mutation({
-            query({ id, interview }) {
+            query({ id, userId, body }) {
                 return {
-                    url: `/posts/${id}`,
-                    method: 'PATCH',
-                    credentials: 'include',
-                    body: interview
+                    url: `/interview/${userId}/record/${id}`,
+                    method: 'PUT',
+                    body: body
                 };
-            },
-            invalidatesTags: (result, error, { id }) =>
-                result
-                    ? [
-                          { type: 'Interview', id },
-                          { type: 'Interview', id: 'LIST' }
-                      ]
-                    : [{ type: 'Interview', id: 'LIST' }],
-            transformResponse: (response) => response.data.interview
+            }
         }),
         getInterview: builder.query({
             query(id) {
@@ -45,23 +37,22 @@ export const interviewApi = createApi({
             providesTags: (result, error, id) => [{ type: 'Interview', id }]
         }),
         getAllInterviews: builder.query({
-            query() {
+            query({ id }) {
                 return {
-                    url: `/posts`,
-                    credentials: 'include'
+                    url: `/interview/${id}/record`
                 };
             },
-            providesTags: (result) =>
-                result
-                    ? [
-                          ...result.map(({ id }) => ({
-                              type: 'Interview',
-                              id
-                          })),
-                          { type: 'Interview', id: 'LIST' }
-                      ]
-                    : [{ type: 'Interview', id: 'LIST' }],
-            transformResponse: (results) => results.data.interview
+            // providesTags: (result) =>
+            //     result
+            //         ? [
+            //               ...result.map(({ id }) => ({
+            //                   type: 'Interview',
+            //                   id
+            //               })),
+            //               { type: 'Interview', id: 'LIST' }
+            //           ]
+            //         : [{ type: 'Interview', id: 'LIST' }],
+            transformResponse: (results) => results.records
         }),
         deleteInterview: builder.mutation({
             query(id) {
@@ -88,6 +79,6 @@ export const {
     useCreateInterviewMutation,
     useDeleteInterviewMutation,
     useUpdateInterviewMutation,
-    // useGetAllInterviewQuery,
+    useLazyGetAllInterviewsQuery,
     useLazyGetCoachByCodeQuery
 } = interviewApi;
