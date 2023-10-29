@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 // material-ui
-import { Typography, Grid, List, ListItem, Divider, Box, Alert } from '@mui/material';
+import { Typography, Grid, List, ListItem, Divider, Box, Alert, Card } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
 
 // project imports
@@ -11,7 +11,7 @@ import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import GppBadIcon from '@mui/icons-material/GppBad';
 import StarIcon from '@mui/icons-material/Star';
 
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 
 // ==============================|| SAMPLE PAGE ||============================== //
 
@@ -84,27 +84,55 @@ const ScoreListRow = ({ leftSide, nextRound, starScore }) => {
     );
 };
 
+// Helper
+const subjectStackMap = {
+    FRONT_END: 'Front-End',
+    BACK_END: 'Back-End',
+    FULL_STACK: 'Full-Stack',
+    IOS: 'Mobile - IOS',
+    ANDROID: 'Mobile - Android',
+    DEVOPS: 'DevOps'
+};
+
+const levelMap = {
+    MID_LEVEL: 'Mid-Level',
+    JUNIOR: 'Junior',
+    SENIOR: 'Senior'
+};
+
 const InterviewResult = () => {
     let { id } = useParams();
+    const location = useLocation();
+    const { interview } = location.state;
+
+    console.log({ kir: interview });
+    const stack = subjectStackMap[interview.data.stack];
+    const level = levelMap[interview.data.level];
 
     return (
-        <MainCard title={`${mockData.stack} Interview Result`} backIcon="/interview-list">
+        <MainCard title={`${stack} Interview Result`} backIcon="/interview-list">
             <Grid sx={{ width: '100%', flexDirection: 'column' }} alignItems="center" container display="flex" justifyContent="center">
                 <Grid item xs={12}>
                     <Typography sx={{ typography: { xs: 'h6', sm: 'h5', md: 'h3' }, pb: 3 }}>
-                        Feedback About {mockData.stack} - ( {mockData.level} )
+                        Feedback About {stack} - ( {level} )
                     </Typography>
                 </Grid>
 
                 <Grid sx={{ width: '100%', flexDirection: 'column' }} item display="flex" xs={12}>
                     <ScoreListRow
                         leftSide="Advanced this person to the next round ?"
-                        nextRound={mockData.result.accessToNextRound}
+                        nextRound={interview.data.result.accessToNextRound}
                         starScore={null}
                     />
-                    <ScoreListRow leftSide="How were their technical skills ?" starScore={mockData.result.scores.technical_skill} />
-                    <ScoreListRow leftSide="How were their problem solving ability ?" starScore={mockData.result.scores.problem_solving} />
-                    <ScoreListRow leftSide="What about their communication ability ?" starScore={mockData.result.scores.communication} />
+                    <ScoreListRow leftSide="How were their technical skills ?" starScore={interview.data.result.scores.technical_skill} />
+                    <ScoreListRow
+                        leftSide="How were their problem solving ability ?"
+                        starScore={interview.data.result.scores.problem_solving}
+                    />
+                    <ScoreListRow
+                        leftSide="What about their communication ability ?"
+                        starScore={interview.data.result.scores.communication}
+                    />
                 </Grid>
             </Grid>
 
@@ -117,45 +145,53 @@ const InterviewResult = () => {
                 display="flex"
                 justifyContent="center"
             >
-                <Grid item xs={12}>
+                <Grid width="100%" item xs={12}>
                     <Typography sx={{ pb: 3 }} variant="h4">
                         Context
                     </Typography>
 
-                    <Typography variant="body">{mockData.result.description.context}</Typography>
+                    <Typography variant="body">{interview.data.result.description.context}</Typography>
                     <Divider sx={{ marginLeft: 0, width: '100%', paddingTop: '20px', listStyle: 'none' }} variant="inset" component="li" />
                 </Grid>
 
                 {/* Summary */}
 
-                <Grid item pt={4} xs={12}>
+                <Grid item width="100%" pt={4} xs={12}>
                     <Typography sx={{ pb: 3 }} variant="h4">
                         Summary
                     </Typography>
 
-                    <Typography variant="body">{mockData.result.description.summary}</Typography>
+                    <Typography variant="body">{interview.data.result.description.summary}</Typography>
                     <Divider sx={{ marginLeft: 0, width: '100%', paddingTop: '20px', listStyle: 'none' }} variant="inset" component="li" />
                 </Grid>
 
                 {/* Technical Evaluation */}
 
-                <Grid item pt={4} xs={12}>
+                <Grid width="100%" item pt={4} xs={12}>
                     <Typography sx={{ pb: 3 }} variant="h4">
                         Technical Evaluation
                     </Typography>
 
-                    <Typography variant="body">{mockData.result.description.technical_evaluation}</Typography>
+                    <Typography variant="body">{interview.data.result.description.technical_evaluation}</Typography>
                     <Divider sx={{ marginLeft: 0, width: '100%', paddingTop: '20px', listStyle: 'none' }} variant="inset" component="li" />
                 </Grid>
 
                 {/* Suggestions for Improvement */}
 
-                <Grid item pt={4} pb={12} xs={12}>
+                <Grid item width="100%" pt={4} pb={12} xs={12}>
                     <Typography sx={{ pb: 3 }} variant="h4">
                         Suggestions for Improvement
                     </Typography>
 
-                    <Typography variant="body">{mockData.result.description.improvement_suggest}</Typography>
+                    <Typography variant="body">{interview.data.result.description.improvement_suggest}</Typography>
+                </Grid>
+
+                <Grid item width="100%" pt={4} pb={12} xs={12}>
+                    <Card sx={{ backgroundColor: '#f7e2f2' }} variant="outlined">
+                        <Typography p={4} color="darkblue" variant="h4">
+                            We Will Send All Information to your Email Address
+                        </Typography>
+                    </Card>
                 </Grid>
 
                 <Grid pb={6} item xs={12}>

@@ -19,7 +19,7 @@ import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { useTheme } from '@mui/material/styles';
-import { Typography, useMediaQuery, Button, Alert } from '@mui/material';
+import { Typography, useMediaQuery, Button, Alert, CircularProgress } from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -76,7 +76,7 @@ const mockData = [
     }
 ];
 
-function createData(id, selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus) {
+function createData(id, selectedTime, created_at, stack, status, amount, interviewUserId, paymentStatus, data) {
     const subjectStackMap = {
         FRONT_END: 'Front-End',
         BACK_END: 'Back-End',
@@ -108,6 +108,7 @@ function createData(id, selectedTime, created_at, stack, status, amount, intervi
     };
 
     return {
+        data: data,
         id,
         created_at: formatTimeStamp(created_at),
         stack: subjectStackMap[stack],
@@ -217,9 +218,9 @@ function MobileRow(props) {
             </Dialog>
             <TableRow hover sx={{ '& > *': { borderBottom: 'unset' }, ...(row.status === 'Canceled' && { opacity: '0.4' }) }}>
                 <TableCell>
-                    {row.status === 'finished' ? (
+                    {row.status === 'Finished' ? (
                         <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
-                            <Link to="/interview-result/99">
+                            <Link state={{ interview: row }} to="/interview-result/99">
                                 <KeyboardArrowUpIcon />
                             </Link>
                         </IconButton>
@@ -360,8 +361,10 @@ function Row(props) {
                 <TableCell align="right">{row.created_at}</TableCell>
 
                 <TableCell align="right">
-                    {row.status === 'finished' ? (
-                        <Link to="/interview-result/99">SEE RESULT</Link>
+                    {row.status === 'Finished' ? (
+                        <Link state={{ interview: row }} to="/interview-result/99">
+                            SEE RESULT
+                        </Link>
                     ) : (
                         <React.Fragment>
                             {/* <h1>{row.status}</h1> */}
@@ -433,7 +436,7 @@ const SamplePage = () => {
     const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
 
     // State
-    const [data, setdata] = React.useState([]);
+    const [data, setdata] = React.useState(null);
 
     const { data: userFromServer, isLoading, isFetching } = useGetMeQuery();
     const [
@@ -451,7 +454,6 @@ const SamplePage = () => {
 
     React.useEffect(() => {
         if (userFromServer?.id) {
-            console.log('kir');
             console.log(interviewsData);
             getInterviewFetcher({ id: userFromServer.id });
         }
@@ -462,7 +464,9 @@ const SamplePage = () => {
             console.log('interviews^^^^');
             console.log(interviewsData);
 
-            const rows = interviewsData.map((data) => {
+            const filteredRecords = interviewsData.filter((i) => i.paymentStatus === 'PAYED');
+
+            const rows = filteredRecords.map((data) => {
                 const interviewUserId = data?.interviewUserId?.name || 'Not Defined';
                 return createData(
                     data._id,
@@ -472,7 +476,8 @@ const SamplePage = () => {
                     data.status,
                     data.amount,
                     interviewUserId,
-                    data.paymentStatus
+                    data.paymentStatus,
+                    data
                 );
             });
             setdata(rows);
@@ -499,12 +504,16 @@ const SamplePage = () => {
                 </TableRow>
             </TableHead>
 
-            {data.length && (
+            {data ? (
                 <TableBody>
                     {matchesXs
                         ? data.map((row) => <MobileRow fetchNewList={refetch} userId={userFromServer.id} key={row.name} row={row} />)
                         : data.map((row) => <Row fetchNewList={refetch} userId={userFromServer.id} key={row.name} row={row} />)}
                 </TableBody>
+            ) : (
+                <Box sx={{ display: 'flex', justifyContent: 'center', minHeight: '300px', width: '100%' }}>
+                    <CircularProgress />
+                </Box>
             )}
         </Table>
     );
@@ -526,7 +535,7 @@ const SamplePage = () => {
                 </TableRow>
             </TableHead>
 
-            {data.length && (
+            {data && (
                 <TableBody>
                     {data.map((row) => (
                         <MobileRow fetchNewList={refetch} userId={userFromServer.id} key={row.name} row={row} />
